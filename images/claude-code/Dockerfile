@@ -29,6 +29,11 @@ LABEL co.stuffbucket.cli.auth.env="ANTHROPIC_API_KEY" \
   co.stuffbucket.cli.endpoint.env="ANTHROPIC_BASE_URL" \
   co.stuffbucket.cli.config.dir="/home/node/.claude"
 
+# Bundled third-party license for the CLI (installed from its official npm package).
+# NOTE: @anthropic-ai/claude-code is proprietary (all rights reserved) — see this
+# file and README "Licensing & redistribution" before redistributing this image.
+COPY THIRD_PARTY_LICENSE /usr/local/share/licenses/claude-code/THIRD_PARTY_LICENSE
+
 # Run unprivileged. /work is where you mount your project.
 RUN mkdir -p /work && chown node:node /work
 USER node

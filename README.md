@@ -164,7 +164,30 @@ different owner, add `--user "$(id -u):$(id -g)"`.
 
 That's it — the matrix and registry path are derived from `versions.json`.
 
-## License
+## Licensing & redistribution
 
-MIT. The CLIs themselves are under their own licenses and are installed from
-their official npm packages at build time; this repo only packages them.
+**This repository** (Dockerfiles, workflows, scripts) is **MIT**.
+
+**The bundled CLIs are not.** Each is installed from its official npm package and
+keeps its own license, which ships both in the image at
+`/usr/local/share/licenses/<cli>/` and in `images/<cli>/THIRD_PARTY_LICENSE`.
+Their terms differ in ways that matter for *redistributing these images*:
+
+| CLI | License | Redistribution (i.e. publishing an image that contains it) |
+| --- | --- | --- |
+| `codex` | **Apache-2.0** (OSI) | ✅ Permitted, incl. commercial. We ship the required `LICENSE` + `NOTICE`. |
+| `copilot` | **GitHub Copilot CLI License** (proprietary) | ⚠️ **Conditional.** Permitted only *unmodified*, *as part of a value-added application/service*, *not as a standalone/primary product*, with the license retained. A bare "CLI in a container" image may fall outside this grant. |
+| `claude-code` | **Anthropic proprietary — all rights reserved** | ⛔ **No redistribution grant.** The license permits install-and-run; it does not grant rights to redistribute. Publishing an image that bakes it in is governed by Anthropic's [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) / [legal & compliance](https://code.claude.com/docs/en/legal-and-compliance). |
+
+**What this means in practice:**
+
+- Using these images **privately / internally** (you pull and run them yourself,
+  e.g. in your own CI) is the install-and-run case all three licenses allow.
+- **Publicly redistributing** the `claude-code` (and arguably `copilot`) images
+  is **not clearly permitted**. The safest patterns are: keep those packages
+  **private**, ship a **Dockerfile/recipe** so users build their own, install the
+  CLI **at build/run time from the official npm registry** rather than treating
+  the image as the redistributable product, or obtain the vendor's permission.
+  `codex` (Apache-2.0) has no such restriction.
+
+If you fork or publish these, review the per-CLI terms above for your use case.

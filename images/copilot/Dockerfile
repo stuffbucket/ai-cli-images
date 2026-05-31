@@ -33,6 +33,11 @@ LABEL co.stuffbucket.cli.auth.env="COPILOT_GITHUB_TOKEN,GH_TOKEN,GITHUB_TOKEN" \
   co.stuffbucket.cli.endpoint.env="COPILOT_PROVIDER_BASE_URL" \
   co.stuffbucket.cli.config.dir="/home/node/.copilot"
 
+# The GitHub Copilot CLI License *requires* this license file to ship with any
+# redistribution. NOTE: that grant is conditional (unmodified, value-added,
+# non-standalone) — see README "Licensing & redistribution".
+COPY THIRD_PARTY_LICENSE /usr/local/share/licenses/copilot/THIRD_PARTY_LICENSE
+
 # Run unprivileged. /work is where you mount your project.
 RUN mkdir -p /work && chown node:node /work
 USER node

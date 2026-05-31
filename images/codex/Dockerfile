@@ -30,6 +30,10 @@ LABEL co.stuffbucket.cli.auth.env="OPENAI_API_KEY" \
   co.stuffbucket.cli.endpoint.flag="--oss --local-provider <ollama|lmstudio>" \
   co.stuffbucket.cli.config.dir="/home/node/.codex"
 
+# Apache-2.0 requires the LICENSE and NOTICE to travel with the redistributed CLI
+# (the npm package ships neither, so we add them).
+COPY THIRD_PARTY_LICENSE NOTICE /usr/local/share/licenses/codex/
+
 # Run unprivileged. /work is where you mount your project.
 RUN mkdir -p /work && chown node:node /work
 USER node

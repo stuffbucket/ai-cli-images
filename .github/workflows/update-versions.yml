@@ -1,0 +1,49 @@
+name: update-versions
+
+# Weekly check of npm for newer CLI releases. When one is found, bumps
+# versions.json and opens a PR; merging it triggers build-and-push.
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check npm for newer CLI versions
+        shell: bash
+        run: |
+          declare -A PKG=(
+            [claude-code]=@anthropic-ai/claude-code
+            [copilot]=@github/copilot
+            [codex]=@openai/codex
+          )
+          changed=0
+          for name in "${!PKG[@]}"; do
+            latest="$(npm view "${PKG[$name]}" version)"
+            current="$(jq -r --arg n "$name" '.[$n] // ""' versions.json)"
+            if [ -n "$latest" ] && [ "$latest" != "$current" ]; then
+              echo "$name: ${current:-none} -> $latest"
+              jq --arg n "$name" --arg v "$latest" '.[$n]=$v' versions.json > versions.json.tmp
+              mv versions.json.tmp versions.json
+              changed=1
+            fi
+          done
+          echo "changed=$changed" >> "$GITHUB_ENV"
+
+      - name: Open PR
+        if: env.changed == '1'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: bump CLI versions"
+          title: "chore: bump CLI versions"
+          body: "Automated bump of pinned CLI versions from their npm `latest` dist-tags."
+          branch: chore/bump-cli-versions
+          delete-branch: true

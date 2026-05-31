@@ -1,0 +1,83 @@
+name: build-and-push
+
+# Builds each CLI image (multi-arch) and pushes it to the GitHub Container
+# Registry. The image set and pinned CLI versions come from versions.json.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "images/**"
+      - "versions.json"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "images/**"
+      - "versions.json"
+      - ".github/workflows/build.yml"
+  schedule:
+    # Weekly rebuild to pick up base-image security updates.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        # Turn versions.json {"name":"version",...} into a build matrix.
+        run: |
+          matrix="$(jq -c '{include: [to_entries[] | {name: .key, version: .value}]}' versions.json)"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "$matrix" | jq .
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ${{ env.REGISTRY }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.name }}
+          tags: |
+            type=raw,value=${{ matrix.version }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: images/${{ matrix.name }}
+          build-args: |
+            CLI_VERSION=${{ matrix.version }}
+          platforms: linux/amd64,linux/arm64
+          # Push on branch/schedule/dispatch; build-only for pull requests.
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max

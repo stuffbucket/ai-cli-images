@@ -1,19 +1,31 @@
 # syntax=docker/dockerfile:1
-# Anthropic Claude Code CLI, containerized.
-# Claude Code runs cleanly on musl, so this uses the small Alpine base.
-ARG NODE_VERSION=24
-FROM node:${NODE_VERSION}-alpine
+# Anthropic Claude Code CLI — deferred-install launcher (Alpine, musl).
+#
+# This image does NOT contain the Claude Code CLI. Because the CLI is proprietary
+# (all rights reserved, no redistribution grant), the image ships only Node + a
+# bootstrap that installs the pinned version from the official npm registry on
+# first run, into /home/node/.local (persist it with a volume). Distributing this
+# image does not redistribute the CLI. See README "Licensing & redistribution".
+FROM node:24-alpine@sha256:2bdb65ed1dab192432bc31c95f94155ca5ad7fc1392fb7eb7526ab682fa5bf14
 
-# Pinned by versions.json; overridden per build by CI.
+# Pinned by versions.json; overridden per build by CI. Installed at RUN-time, not build.
 ARG CLI_VERSION=latest
 
-# bash for interactive use, git because the agent typically works inside a repo.
-RUN apk add --no-cache bash ca-certificates git \
-  && npm install -g "@anthropic-ai/claude-code@${CLI_VERSION}" \
-  && npm cache clean --force
+# tini = correct PID-1 signal handling / zombie reaping for clean Ctrl-C in a TTY.
+RUN apk add --no-cache bash ca-certificates git tini
+
+ENV CLI_PACKAGE="@anthropic-ai/claude-code" \
+    CLI_BIN="claude" \
+    CLI_VERSION="${CLI_VERSION}" \
+    HOME="/home/node" \
+    NPM_CONFIG_PREFIX="/home/node/.local" \
+    PATH="/home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+COPY bootstrap.sh /usr/local/bin/bootstrap
+COPY THIRD_PARTY_LICENSE /usr/local/share/licenses/claude-code/THIRD_PARTY_LICENSE
 
 LABEL org.opencontainers.image.title="claude-code" \
-  org.opencontainers.image.description="Anthropic Claude Code CLI in a container" \
+  org.opencontainers.image.description="Anthropic Claude Code CLI (deferred-install launcher)" \
   org.opencontainers.image.source="https://github.com/stuffbucket/ai-cli-images" \
   org.opencontainers.image.documentation="https://github.com/stuffbucket/ai-cli-images#credentials" \
   org.opencontainers.image.base.name="docker.io/library/node:24-alpine" \
@@ -25,18 +37,25 @@ LABEL org.opencontainers.image.title="claude-code" \
 #   endpoint.env : point at a self-hosted / custom endpoint (a vendor key is then
 #                  optional — use ANTHROPIC_AUTH_TOKEN, or a dummy ANTHROPIC_API_KEY)
 #   config.dir   : mount this to persist an interactive login between runs
+#   workspace.dir: bind-mount your project here (alias /workspace)
+#   install.mode : "deferred" — the CLI is fetched on first run, not baked in
 LABEL co.stuffbucket.cli.auth.env="ANTHROPIC_API_KEY" \
   co.stuffbucket.cli.endpoint.env="ANTHROPIC_BASE_URL" \
-  co.stuffbucket.cli.config.dir="/home/node/.claude"
+  co.stuffbucket.cli.config.dir="/home/node/.claude" \
+  co.stuffbucket.cli.workspace.dir="/work" \
+  co.stuffbucket.cli.install.mode="deferred"
 
-# Bundled third-party license for the CLI (installed from its official npm package).
-# NOTE: @anthropic-ai/claude-code is proprietary (all rights reserved) — see this
-# file and README "Licensing & redistribution" before redistributing this image.
-COPY THIRD_PARTY_LICENSE /usr/local/share/licenses/claude-code/THIRD_PARTY_LICENSE
-
-# Run unprivileged. /work is where you mount your project.
-RUN mkdir -p /work && chown node:node /work
+# Run unprivileged, but allow an arbitrary --user (uid != 1000) to still write
+# config/login/install: own everything to gid 0 and mirror user perms to group
+# (the OpenShift "arbitrary uid" pattern). /workspace aliases /work.
+RUN mkdir -p /home/node/.local /home/node/.claude /work \
+  && ln -s /work /workspace \
+  && chown -R node:0 /home/node /work \
+  && chmod -R g=u /home/node /work
 USER node
 WORKDIR /work
 
-ENTRYPOINT ["claude"]
+# Persist the runtime-installed CLI across runs: docker run -v claude-cli:/home/node/.local
+VOLUME ["/home/node/.local"]
+
+ENTRYPOINT ["tini", "--", "/usr/local/bin/bootstrap"]

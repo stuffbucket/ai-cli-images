@@ -1,16 +1,22 @@
 # syntax=docker/dockerfile:1
-# OpenAI Codex CLI, containerized.
-# Codex's native binary runs on musl, so this uses the small Alpine base.
-ARG NODE_VERSION=24
-FROM node:${NODE_VERSION}-alpine
+# OpenAI Codex CLI, containerized (Alpine, musl).
+# Codex is Apache-2.0, so the CLI is baked in directly (redistribution is
+# permitted; we ship the required LICENSE + NOTICE). Its native binary runs on
+# musl, so this uses the small Alpine base.
+FROM node:24-alpine@sha256:2bdb65ed1dab192432bc31c95f94155ca5ad7fc1392fb7eb7526ab682fa5bf14
 
 # Pinned by versions.json; overridden per build by CI.
 ARG CLI_VERSION=latest
 
-# libstdc++/libgcc are the native binary's runtime deps; git for in-repo work.
-RUN apk add --no-cache bash ca-certificates git libstdc++ libgcc \
+# libstdc++/libgcc are the native binary's runtime deps; git for in-repo work;
+# tini for correct PID-1 signal handling / zombie reaping (clean Ctrl-C in a TTY).
+RUN apk add --no-cache bash ca-certificates git libstdc++ libgcc tini \
   && npm install -g "@openai/codex@${CLI_VERSION}" \
   && npm cache clean --force
+
+ENV HOME="/home/node"
+
+COPY THIRD_PARTY_LICENSE NOTICE /usr/local/share/licenses/codex/
 
 LABEL org.opencontainers.image.title="codex" \
   org.opencontainers.image.description="OpenAI Codex CLI in a container" \
@@ -26,17 +32,22 @@ LABEL org.opencontainers.image.title="codex" \
 #                   not an env var — `--oss --local-provider ollama|lmstudio`, or
 #                   a [model_providers] entry with base_url in ~/.codex/config.toml
 #   config.dir    : mount this to persist login / config.toml between runs
+#   workspace.dir : bind-mount your project here (alias /workspace)
+#   install.mode  : "baked" — the CLI is installed in the image (Apache-2.0)
 LABEL co.stuffbucket.cli.auth.env="OPENAI_API_KEY" \
   co.stuffbucket.cli.endpoint.flag="--oss --local-provider <ollama|lmstudio>" \
-  co.stuffbucket.cli.config.dir="/home/node/.codex"
+  co.stuffbucket.cli.config.dir="/home/node/.codex" \
+  co.stuffbucket.cli.workspace.dir="/work" \
+  co.stuffbucket.cli.install.mode="baked"
 
-# Apache-2.0 requires the LICENSE and NOTICE to travel with the redistributed CLI
-# (the npm package ships neither, so we add them).
-COPY THIRD_PARTY_LICENSE NOTICE /usr/local/share/licenses/codex/
-
-# Run unprivileged. /work is where you mount your project.
-RUN mkdir -p /work && chown node:node /work
+# Run unprivileged, but allow an arbitrary --user (uid != 1000) to still write
+# config/login: own everything to gid 0 and mirror user perms to group
+# (the OpenShift "arbitrary uid" pattern). /workspace aliases /work.
+RUN mkdir -p /home/node/.codex /work \
+  && ln -s /work /workspace \
+  && chown -R node:0 /home/node /work \
+  && chmod -R g=u /home/node /work
 USER node
 WORKDIR /work
 
-ENTRYPOINT ["codex"]
+ENTRYPOINT ["tini", "--", "codex"]

@@ -8,11 +8,19 @@ mounts your project at `/work`. Multi-arch (`linux/amd64`, `linux/arm64`).
 
 ## Images
 
-| Image | CLI | Base | Pull |
-| --- | --- | --- | --- |
-| `claude-code` | [Anthropic Claude Code](https://www.npmjs.com/package/@anthropic-ai/claude-code) | `node:24-alpine` | `docker pull ghcr.io/stuffbucket/claude-code` |
-| `copilot` | [GitHub Copilot CLI](https://www.npmjs.com/package/@github/copilot) | `node:24-slim` | `docker pull ghcr.io/stuffbucket/copilot` |
-| `codex` | [OpenAI Codex CLI](https://www.npmjs.com/package/@openai/codex) | `node:24-alpine` | `docker pull ghcr.io/stuffbucket/codex` |
+| Image | CLI | Base | Install | Pull |
+| --- | --- | --- | --- | --- |
+| `claude-code` | [Anthropic Claude Code](https://www.npmjs.com/package/@anthropic-ai/claude-code) | `node:24-alpine` | deferred¹ | `docker pull ghcr.io/stuffbucket/claude-code` |
+| `copilot` | [GitHub Copilot CLI](https://www.npmjs.com/package/@github/copilot) | `node:24-slim` | deferred¹ | `docker pull ghcr.io/stuffbucket/copilot` |
+| `codex` | [OpenAI Codex CLI](https://www.npmjs.com/package/@openai/codex) | `node:24-alpine` | baked | `docker pull ghcr.io/stuffbucket/codex` |
+
+¹ **Deferred install.** `claude-code` and `copilot` are proprietary and their
+licenses don't grant general redistribution, so these images do **not** contain
+the CLI. On first run the launcher installs the pinned version from the official
+npm registry into `/home/node/.local`; mount a volume there to persist it across
+runs (otherwise it re-installs each fresh container). `codex` is Apache-2.0, so it
+is baked in directly. The mode is recorded in the `co.stuffbucket.cli.install.mode`
+label. See [Licensing & redistribution](#licensing--redistribution).
 
 ### Tags
 
@@ -39,19 +47,49 @@ any image is also recorded in its `org.opencontainers.image.base.name` label.
 
 ## Usage
 
-Mount your project into `/work` and run the CLI (the image's entrypoint is the
-CLI itself, so anything after the image name is passed straight to it):
+Mount your project into `/work` (alias `/workspace`) and run the CLI — anything
+after the image name is passed straight to it:
 
 ```sh
-# Claude Code — check version
-docker run --rm ghcr.io/stuffbucket/claude-code --version
-
 # Run a CLI against the current directory
 docker run --rm -it -v "$PWD:/work" ghcr.io/stuffbucket/codex
 
 # Drop into a shell instead of the CLI
-docker run --rm -it --entrypoint bash -v "$PWD:/work" ghcr.io/stuffbucket/claude-code
+docker run --rm -it --entrypoint bash -v "$PWD:/work" ghcr.io/stuffbucket/codex
 ```
+
+For the **deferred-install** images (`claude-code`, `copilot`), add a named
+volume so the runtime-installed CLI persists across runs instead of being
+re-fetched each time:
+
+```sh
+docker run --rm -it \
+  -v "$PWD:/work" \
+  -v claude-cli:/home/node/.local \      # persists the installed CLI
+  -v "$HOME/.claude:/home/node/.claude" \ # persists your login
+  ghcr.io/stuffbucket/claude-code
+```
+
+The first run needs network (to fetch the CLI from npm); subsequent runs reuse
+the volume and start immediately.
+
+### Running on Colima / Podman / native Linux
+
+On Docker Desktop the defaults just work. Off Docker Desktop the container's
+`node` uid (1000) and `host.docker.internal` aren't auto-provided, so:
+
+```sh
+docker run --rm -it \
+  -v "$PWD:/work" \
+  --user "$(id -u):$(id -g)" \                       # match host file ownership (native Linux)
+  --add-host=host.docker.internal:host-gateway \     # reach a model server on the host
+  ghcr.io/stuffbucket/codex
+# Podman (rootless): add  --userns=keep-id:uid=1000,gid=1000
+# Colima:            colima start --mount-type=virtiofs   (better uid mapping + I/O perf)
+```
+
+Home dirs are owned by gid 0 and group-writable, so an arbitrary `--user` can
+still write config/login (and install, for the deferred images).
 
 ### Credentials
 
@@ -168,26 +206,21 @@ That's it — the matrix and registry path are derived from `versions.json`.
 
 **This repository** (Dockerfiles, workflows, scripts) is **MIT**.
 
-**The bundled CLIs are not.** Each is installed from its official npm package and
-keeps its own license, which ships both in the image at
-`/usr/local/share/licenses/<cli>/` and in `images/<cli>/THIRD_PARTY_LICENSE`.
-Their terms differ in ways that matter for *redistributing these images*:
+**The bundled CLIs are not** — and we handle each according to its terms. Every
+CLI's license ships in its image at `/usr/local/share/licenses/<cli>/` and in
+`images/<cli>/THIRD_PARTY_LICENSE`.
 
-| CLI | License | Redistribution (i.e. publishing an image that contains it) |
+| CLI | License | How we ship it |
 | --- | --- | --- |
-| `codex` | **Apache-2.0** (OSI) | ✅ Permitted, incl. commercial. We ship the required `LICENSE` + `NOTICE`. |
-| `copilot` | **GitHub Copilot CLI License** (proprietary) | ⚠️ **Conditional.** Permitted only *unmodified*, *as part of a value-added application/service*, *not as a standalone/primary product*, with the license retained. A bare "CLI in a container" image may fall outside this grant. |
-| `claude-code` | **Anthropic proprietary — all rights reserved** | ⛔ **No redistribution grant.** The license permits install-and-run; it does not grant rights to redistribute. Publishing an image that bakes it in is governed by Anthropic's [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) / [legal & compliance](https://code.claude.com/docs/en/legal-and-compliance). |
+| `codex` | **Apache-2.0** (OSI) | **Baked in.** Redistribution is permitted (incl. commercial); we include the required `LICENSE` + `NOTICE`. |
+| `copilot` | **GitHub Copilot CLI License** (proprietary) | **Deferred install.** Its grant is conditional (unmodified, value-added, non-standalone), so we don't redistribute it — the image fetches it from npm at first run. |
+| `claude-code` | **Anthropic proprietary — all rights reserved** | **Deferred install.** No redistribution grant, so we don't redistribute it — the image fetches it from npm at first run. |
 
-**What this means in practice:**
-
-- Using these images **privately / internally** (you pull and run them yourself,
-  e.g. in your own CI) is the install-and-run case all three licenses allow.
-- **Publicly redistributing** the `claude-code` (and arguably `copilot`) images
-  is **not clearly permitted**. The safest patterns are: keep those packages
-  **private**, ship a **Dockerfile/recipe** so users build their own, install the
-  CLI **at build/run time from the official npm registry** rather than treating
-  the image as the redistributable product, or obtain the vendor's permission.
-  `codex` (Apache-2.0) has no such restriction.
+**Why deferred install.** For the two proprietary CLIs, the published image
+contains **no CLI bits** — only Node and a launcher. Distributing the image is
+therefore not redistributing the CLI; each user fetches it themselves from the
+official npm registry under the vendor's install-and-run terms (the case all
+three licenses clearly allow). `codex` (Apache-2.0) carries no such restriction,
+so it is baked in for a faster, network-free start.
 
 If you fork or publish these, review the per-CLI terms above for your use case.

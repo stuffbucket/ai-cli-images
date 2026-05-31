@@ -1,0 +1,41 @@
+name: cleanup-packages
+
+# Hygiene only — public GHCR storage is free/unmetered, so this exists to keep
+# the tag list tidy and prune the orphaned untagged manifests that multi-arch
+# rebuilds leave behind. It keeps `latest` + the floating base tags + the most
+# recent N tagged versions, and is multi-arch-safe (unlike
+# actions/delete-package-versions, which corrupts shared manifest lists).
+on:
+  schedule:
+    - cron: "0 4 * * 1" # weekly, after build-and-push
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "List what would be deleted without deleting"
+        type: boolean
+        default: true
+
+permissions:
+  packages: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [claude-code, copilot, codex]
+    steps:
+      # SHA-pinned (supply-chain): this action is given a delete-capable token,
+      # so tag-hijack protection matters most here. Bump the SHA deliberately.
+      - uses: dataaxiom/ghcr-cleanup-action@f092b48ba3b604b2a83690dc4b2bbb3392e1045f # v1.2.1
+        with:
+          owner: ${{ github.repository_owner }}
+          packages: ${{ matrix.package }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          keep-n-tagged: 10
+          exclude-tags: "latest,alpine,slim"
+          delete-untagged: true
+          delete-partial-images: true
+          # Default to a real run on schedule; manual runs default to dry-run.
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}

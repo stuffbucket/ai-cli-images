@@ -1,7 +1,8 @@
 name: update-versions
 
-# Weekly check of npm for newer CLI releases. When one is found, bumps
-# versions.json and opens a PR; merging it triggers build-and-push.
+# Weekly: bump pinned CLI versions (from npm) AND refresh the digest-pinned base
+# images (so the digest pin still receives base-OS security patches). When either
+# changes, opens a PR; merging it triggers build-and-push.
 on:
   schedule:
     - cron: "0 5 * * 1"
@@ -15,7 +16,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # SHA-pinned third-party actions (supply-chain hardening).
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Check npm for newer CLI versions
         shell: bash
@@ -38,12 +40,36 @@ jobs:
           done
           echo "changed=$changed" >> "$GITHUB_ENV"
 
+      - name: Refresh digest-pinned base images
+        shell: bash
+        run: |
+          changed="${changed:-0}"
+          # For each FROM node:24-<base>@sha256:<old>, resolve the live multi-arch
+          # index digest and rewrite it if it moved (base-OS security patches).
+          for df in images/*/Dockerfile; do
+            line="$(grep -oE 'FROM node:24-(alpine|slim)@sha256:[a-f0-9]+' "$df" | head -n1)" || continue
+            [ -n "$line" ] || continue
+            ref="${line#FROM }"            # node:24-alpine@sha256:...
+            tag="${ref%@*}"               # node:24-alpine
+            old="${ref#*@}"               # sha256:...
+            new="$(docker buildx imagetools inspect "$tag" --format '{{.Manifest.Digest}}')"
+            if [ -n "$new" ] && [ "$new" != "$old" ]; then
+              echo "$df: $tag $old -> $new"
+              sed -i "s#${tag}@${old}#${tag}@${new}#g" "$df"
+              changed=1
+            fi
+          done
+          echo "changed=$changed" >> "$GITHUB_ENV"
+
       - name: Open PR
         if: env.changed == '1'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          commit-message: "chore: bump CLI versions"
-          title: "chore: bump CLI versions"
-          body: "Automated bump of pinned CLI versions from their npm `latest` dist-tags."
-          branch: chore/bump-cli-versions
+          commit-message: "chore: bump CLI versions and base image digests"
+          title: "chore: bump CLI versions and base image digests"
+          body: |
+            Automated weekly refresh:
+            - pinned CLI versions bumped to their npm `latest` dist-tags
+            - digest-pinned base images (`node:24-alpine` / `node:24-slim`) refreshed to the current index digest (base-OS security patches)
+          branch: chore/bump-versions
           delete-branch: true

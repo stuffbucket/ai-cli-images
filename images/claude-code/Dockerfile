@@ -21,9 +21,12 @@ LABEL org.opencontainers.image.title="claude-code" \
   org.opencontainers.image.version="${CLI_VERSION}"
 
 # Configuration contract (no credentials are baked in — supply them at runtime).
-#   auth.env    : env var(s) that authenticate non-interactively
-#   config.dir  : mount this to persist an interactive login between runs
+#   auth.env     : env var(s) that authenticate against the default vendor
+#   endpoint.env : point at a self-hosted / custom endpoint (a vendor key is then
+#                  optional — use ANTHROPIC_AUTH_TOKEN, or a dummy ANTHROPIC_API_KEY)
+#   config.dir   : mount this to persist an interactive login between runs
 LABEL co.stuffbucket.cli.auth.env="ANTHROPIC_API_KEY" \
+  co.stuffbucket.cli.endpoint.env="ANTHROPIC_BASE_URL" \
   co.stuffbucket.cli.config.dir="/home/node/.claude"
 
 # Run unprivileged. /work is where you mount your project.

@@ -24,9 +24,13 @@ LABEL org.opencontainers.image.title="copilot" \
   org.opencontainers.image.version="${CLI_VERSION}"
 
 # Configuration contract (no credentials are baked in — supply them at runtime).
-#   auth.env    : env var(s) that authenticate non-interactively
-#   config.dir  : mount this to persist an interactive login between runs
+#   auth.env     : GitHub token env var(s) for the default (GitHub-routed) models
+#   endpoint.env : BYOK — point at a self-hosted / custom OpenAI-compatible
+#                  endpoint; GitHub auth is then not required (key optional for
+#                  local providers like Ollama)
+#   config.dir   : mount this to persist an interactive login between runs
 LABEL co.stuffbucket.cli.auth.env="COPILOT_GITHUB_TOKEN,GH_TOKEN,GITHUB_TOKEN" \
+  co.stuffbucket.cli.endpoint.env="COPILOT_PROVIDER_BASE_URL" \
   co.stuffbucket.cli.config.dir="/home/node/.copilot"
 
 # Run unprivileged. /work is where you mount your project.

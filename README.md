@@ -56,8 +56,10 @@ docker run --rm -it --entrypoint bash -v "$PWD:/work" ghcr.io/stuffbucket/claude
 ### Credentials
 
 **The expectation: these images ship _no_ credentials by design.** Each is just
-the CLI on a clean base — you supply your own account/keys at run time. There
-are two ways to do that, and you can mix them:
+the CLI on a clean base — you supply your own account/keys at run time, **or
+point the CLI at a self-hosted model and skip the vendor key entirely** (see
+[Self-hosted & custom models](#self-hosted--custom-models)). For the default
+vendor path there are two ways, and you can mix them:
 
 1. **Non-interactive (env var):** set the CLI's auth env var. Best for CI and
    scripting. `-e NAME` (no value) forwards the variable from your shell.
@@ -95,6 +97,48 @@ docker run --rm -it -v "$PWD:/work" -e GH_TOKEN \
 
 Inside the container `$HOME` is `/home/node`. Mounting a host config dir
 (`-v "$HOME/.claude:/home/node/.claude"`) reuses a login you already have.
+
+### Self-hosted & custom models
+
+You don't need a vendor account at all — each CLI can be pointed at a
+self-hosted or OpenAI/Anthropic-compatible endpoint (LiteLLM, vLLM, Ollama,
+LM Studio, a gateway, Bedrock/Vertex). The override mechanism per image is also
+in the `co.stuffbucket.cli.endpoint.*` label.
+
+```sh
+# Claude Code -> any Anthropic-compatible endpoint (key optional; a bearer
+# token or a dummy key satisfies the client)
+docker run --rm -it -v "$PWD:/work" \
+  -e ANTHROPIC_BASE_URL=http://host.docker.internal:4000 \
+  -e ANTHROPIC_AUTH_TOKEN=local \
+  ghcr.io/stuffbucket/claude-code
+# (Bedrock/Vertex instead: -e CLAUDE_CODE_USE_BEDROCK=1 / -e CLAUDE_CODE_USE_VERTEX=1)
+
+# Copilot -> BYOK; with a provider base URL, GitHub auth is NOT required
+docker run --rm -it -v "$PWD:/work" \
+  -e COPILOT_PROVIDER_BASE_URL=http://host.docker.internal:11434/v1 \
+  -e COPILOT_PROVIDER_TYPE=openai \
+  ghcr.io/stuffbucket/copilot
+# (COPILOT_PROVIDER_API_KEY is optional — only if your endpoint requires it)
+
+# Codex -> built-in OSS providers, no OpenAI key
+docker run --rm -it -v "$PWD:/work" \
+  ghcr.io/stuffbucket/codex --oss --local-provider ollama
+```
+
+For a custom (non-OSS) endpoint, Codex uses `~/.codex/config.toml` instead of an
+env var — mount `-v "$HOME/.codex:/home/node/.codex"` and add:
+
+```toml
+[model_providers.local]
+name = "local"
+base_url = "http://host.docker.internal:1234/v1"
+env_key = "LOCAL_API_KEY"   # may be a dummy value for local servers
+```
+
+> **Reaching a model on your host:** from inside the container, use
+> `host.docker.internal` (Docker Desktop) in the URL, or on Linux run with
+> `--network host` (or `--add-host=host.docker.internal:host-gateway`).
 
 ### Bind-mount permissions
 

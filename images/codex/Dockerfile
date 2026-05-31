@@ -21,9 +21,13 @@ LABEL org.opencontainers.image.title="codex" \
   org.opencontainers.image.version="${CLI_VERSION}"
 
 # Configuration contract (no credentials are baked in — supply them at runtime).
-#   auth.env    : env var(s) that authenticate non-interactively
-#   config.dir  : mount this to persist an interactive login between runs
+#   auth.env      : env var that authenticates against the default vendor (OpenAI)
+#   endpoint.flag : self-hosted / custom models are selected via flags or config,
+#                   not an env var — `--oss --local-provider ollama|lmstudio`, or
+#                   a [model_providers] entry with base_url in ~/.codex/config.toml
+#   config.dir    : mount this to persist login / config.toml between runs
 LABEL co.stuffbucket.cli.auth.env="OPENAI_API_KEY" \
+  co.stuffbucket.cli.endpoint.flag="--oss --local-provider <ollama|lmstudio>" \
   co.stuffbucket.cli.config.dir="/home/node/.codex"
 
 # Run unprivileged. /work is where you mount your project.

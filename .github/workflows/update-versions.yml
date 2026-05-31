@@ -28,10 +28,10 @@ jobs:
           changed=0
           for name in "${!PKG[@]}"; do
             latest="$(npm view "${PKG[$name]}" version)"
-            current="$(jq -r --arg n "$name" '.[$n] // ""' versions.json)"
+            current="$(jq -r --arg n "$name" '.[$n].version // ""' versions.json)"
             if [ -n "$latest" ] && [ "$latest" != "$current" ]; then
               echo "$name: ${current:-none} -> $latest"
-              jq --arg n "$name" --arg v "$latest" '.[$n]=$v' versions.json > versions.json.tmp
+              jq --arg n "$name" --arg v "$latest" '.[$n].version=$v' versions.json > versions.json.tmp
               mv versions.json.tmp versions.json
               changed=1
             fi

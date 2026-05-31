@@ -30,9 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: set
-        # Turn versions.json {"name":"version",...} into a build matrix.
+        # Turn versions.json {"name":{"version","base"},...} into a build matrix.
         run: |
-          matrix="$(jq -c '{include: [to_entries[] | {name: .key, version: .value}]}' versions.json)"
+          matrix="$(jq -c '{include: [to_entries[] | {name: .key, version: .value.version, base: .value.base}]}' versions.json)"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "$matrix" | jq .
 
@@ -63,9 +63,18 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.name }}
+          # Base variant (alpine/slim) is encoded as a tag suffix, matching the
+          # convention of the official node/python images. With one base per
+          # image today, the unsuffixed `latest`/`<version>` and the floating
+          # `<base>` tag all point at the same build; the suffixed
+          # `<version>-<base>` is the fully explicit, reproducible pin.
           tags: |
+            type=raw,value=${{ matrix.version }}-${{ matrix.base }}
             type=raw,value=${{ matrix.version }}
+            type=raw,value=${{ matrix.base }}
             type=raw,value=latest,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.version=${{ matrix.version }}
 
       - name: Build and push ${{ matrix.name }}
         uses: docker/build-push-action@v6

@@ -1,5 +1,5 @@
 {
-  "claude-code": "2.1.158",
-  "copilot": "1.0.56",
-  "codex": "0.135.0"
+  "claude-code": { "version": "2.1.158", "base": "alpine" },
+  "copilot": { "version": "1.0.56", "base": "slim" },
+  "codex": { "version": "0.135.0", "base": "alpine" }
 }

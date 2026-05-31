@@ -16,15 +16,26 @@ mounts your project at `/work`. Multi-arch (`linux/amd64`, `linux/arm64`).
 
 ### Tags
 
-- `latest` — most recent build of the default branch.
-- `<version>` — the exact CLI version baked in (e.g. `claude-code:2.1.158`).
-  Pin to this for reproducible environments.
+The base variant (`alpine` / `slim`) is encoded as a tag suffix, the same way
+the official `node`/`python` images do it. For each image:
+
+| Tag | Example | Meaning |
+| --- | --- | --- |
+| `<version>-<base>` | `claude-code:2.1.158-alpine` | Fully explicit, reproducible pin. |
+| `<version>` | `claude-code:2.1.158` | CLI version, default base. |
+| `<base>` | `claude-code:alpine`, `copilot:slim` | Floating — latest build of that base. |
+| `latest` | `claude-code:latest` | Most recent build of the default branch. |
+
+Today each image has exactly one base, so all four point at the same build; the
+suffix exists so the base is unambiguous in a digest/lockfile and so an image
+can gain a second base later without breaking existing pins.
 
 ### Why the bases differ
 
 `claude-code` and `codex` run cleanly on Alpine (musl), so they use the smaller
 Alpine base. The Copilot CLI's native agent binary segfaults under musl, so
-`copilot` uses the glibc Debian "slim" base where it runs correctly.
+`copilot` uses the glibc Debian "slim" base where it runs correctly. The base of
+any image is also recorded in its `org.opencontainers.image.base.name` label.
 
 ## Usage
 
@@ -44,21 +55,46 @@ docker run --rm -it --entrypoint bash -v "$PWD:/work" ghcr.io/stuffbucket/claude
 
 ### Credentials
 
-These CLIs need your own credentials — nothing is baked in. Pass them at run
-time via environment variables and/or by mounting the CLI's config directory:
+**The expectation: these images ship _no_ credentials by design.** Each is just
+the CLI on a clean base — you supply your own account/keys at run time. There
+are two ways to do that, and you can mix them:
+
+1. **Non-interactive (env var):** set the CLI's auth env var. Best for CI and
+   scripting. `-e NAME` (no value) forwards the variable from your shell.
+2. **Interactive login (mounted config):** run with `-it` and log in once; mount
+   the CLI's config dir so the session persists across `docker run`s.
+
+Each image declares its own contract — discoverable without reading these docs:
 
 ```sh
-# API key via env
-docker run --rm -it -v "$PWD:/work" \
-  -e ANTHROPIC_API_KEY ghcr.io/stuffbucket/claude-code
-
-# Persist login between runs by mounting the config dir
-docker run --rm -it -v "$PWD:/work" \
-  -v "$HOME/.claude:/home/node/.claude" ghcr.io/stuffbucket/claude-code
+docker inspect ghcr.io/stuffbucket/claude-code \
+  --format '{{json .Config.Labels}}' | jq '."co.stuffbucket.cli.auth.env", ."co.stuffbucket.cli.config.dir"'
+# "ANTHROPIC_API_KEY"
+# "/home/node/.claude"
 ```
 
-Config dirs: Claude Code `~/.claude`, Copilot `~/.copilot`, Codex `~/.codex`
-(inside the container, `$HOME` is `/home/node`).
+| Image | Auth env var(s) | Config dir (mount to persist login) | Interactive login |
+| --- | --- | --- | --- |
+| `claude-code` | `ANTHROPIC_API_KEY` | `/home/node/.claude` | run with `-it`, or `claude auth` |
+| `copilot` | `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, `GITHUB_TOKEN` (in that order); or BYOK via `COPILOT_PROVIDER_BASE_URL` + `COPILOT_PROVIDER_API_KEY` | `/home/node/.copilot` | `/login` inside the session |
+| `codex` | `OPENAI_API_KEY` | `/home/node/.codex` | `codex login` (ChatGPT) |
+
+```sh
+# CI / scripting — key from the host environment
+docker run --rm -v "$PWD:/work" -e ANTHROPIC_API_KEY \
+  ghcr.io/stuffbucket/claude-code -p "summarize this repo"
+
+# Interactive — log in once, persist it on the host
+docker run --rm -it -v "$PWD:/work" \
+  -v "$HOME/.codex:/home/node/.codex" ghcr.io/stuffbucket/codex
+
+# Reuse an existing host login (e.g. Copilot/gh token)
+docker run --rm -it -v "$PWD:/work" -e GH_TOKEN \
+  ghcr.io/stuffbucket/copilot
+```
+
+Inside the container `$HOME` is `/home/node`. Mounting a host config dir
+(`-v "$HOME/.claude:/home/node/.claude"`) reuses a login you already have.
 
 ### Bind-mount permissions
 

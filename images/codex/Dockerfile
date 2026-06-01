@@ -18,7 +18,7 @@ ENV HOME="/home/node"
 
 COPY THIRD_PARTY_LICENSE NOTICE /usr/local/share/licenses/codex/
 
-LABEL org.opencontainers.image.title="codex" \
+LABEL org.opencontainers.image.title="ai-cli-codex" \
   org.opencontainers.image.description="OpenAI Codex CLI in a container" \
   org.opencontainers.image.source="https://github.com/stuffbucket/ai-cli-images" \
   org.opencontainers.image.documentation="https://github.com/stuffbucket/ai-cli-images#credentials" \

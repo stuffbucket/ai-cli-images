@@ -33,14 +33,14 @@ const { version } = require("./package.json");
 run({ cli: ${JSON.stringify(cli)}, version }, process.argv.slice(2));
 `;
 
-const pkgJson = (cli, version) => {
+const pkgJson = (cli, meta) => {
   // bin name must equal the package's unscoped name so `npx @stuffbucket/ai-cli-x`
   // resolves the bin without `-p`.
   const bin = `ai-cli-${pkgShort(cli)}`;
   return {
     name: pkgName(cli),
-    version,
-    description: `npx wrapper that runs the ${cli} CLI via the ghcr.io/stuffbucket/${cli} container image (version-locked 1:1 with the CLI)`,
+    version: meta.version,
+    description: `npx wrapper that runs the ${cli} CLI via the ghcr.io/stuffbucket/${meta.image} container image (version-locked 1:1 with the CLI)`,
     license: "MIT",
     repository: {
       type: "git",
@@ -59,7 +59,7 @@ for (const [cli, meta] of Object.entries(versions)) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(
     join(dir, "package.json"),
-    JSON.stringify(pkgJson(cli, meta.version), null, 2) + "\n",
+    JSON.stringify(pkgJson(cli, meta), null, 2) + "\n",
   );
   const run = join(dir, "run.js");
   writeFileSync(run, runJs(cli));

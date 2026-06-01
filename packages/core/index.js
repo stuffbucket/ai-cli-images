@@ -16,13 +16,13 @@ const { spawnSync } = require("node:child_process");
 // (co.stuffbucket.cli.*). `deferred` mirrors install.mode.
 const CLI = {
   "claude-code": {
-    image: "claude-code",
+    image: "ai-cli-claude",
     deferred: true,
     env: ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL"],
     config: "/home/node/.claude",
   },
   copilot: {
-    image: "copilot",
+    image: "ai-cli-copilot",
     deferred: true,
     env: [
       "COPILOT_GITHUB_TOKEN",
@@ -35,7 +35,7 @@ const CLI = {
     config: "/home/node/.copilot",
   },
   codex: {
-    image: "codex",
+    image: "ai-cli-codex",
     deferred: false,
     env: ["OPENAI_API_KEY"],
     config: "/home/node/.codex",
@@ -79,7 +79,7 @@ function buildArgs({ cli, version }, argv = [], env = process.env, tty = undefin
 
   // Persist the runtime-installed CLI for the deferred images.
   if (spec.deferred) {
-    args.push("-v", `aicli-${spec.image}:/home/node/.local`);
+    args.push("-v", `aicli-${cli}:/home/node/.local`);
   }
 
   // Forward auth/endpoint env vars that are actually set (value stays on the host

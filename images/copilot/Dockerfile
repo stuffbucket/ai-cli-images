@@ -28,7 +28,7 @@ ENV CLI_PACKAGE="@github/copilot" \
 COPY bootstrap.sh /usr/local/bin/bootstrap
 COPY THIRD_PARTY_LICENSE /usr/local/share/licenses/copilot/THIRD_PARTY_LICENSE
 
-LABEL org.opencontainers.image.title="copilot" \
+LABEL org.opencontainers.image.title="ai-cli-copilot" \
   org.opencontainers.image.description="GitHub Copilot CLI (deferred-install launcher)" \
   org.opencontainers.image.source="https://github.com/stuffbucket/ai-cli-images" \
   org.opencontainers.image.documentation="https://github.com/stuffbucket/ai-cli-images#credentials" \

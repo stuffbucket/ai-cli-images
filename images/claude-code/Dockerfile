@@ -24,7 +24,7 @@ ENV CLI_PACKAGE="@anthropic-ai/claude-code" \
 COPY bootstrap.sh /usr/local/bin/bootstrap
 COPY THIRD_PARTY_LICENSE /usr/local/share/licenses/claude-code/THIRD_PARTY_LICENSE
 
-LABEL org.opencontainers.image.title="claude-code" \
+LABEL org.opencontainers.image.title="ai-cli-claude" \
   org.opencontainers.image.description="Anthropic Claude Code CLI (deferred-install launcher)" \
   org.opencontainers.image.source="https://github.com/stuffbucket/ai-cli-images" \
   org.opencontainers.image.documentation="https://github.com/stuffbucket/ai-cli-images#credentials" \

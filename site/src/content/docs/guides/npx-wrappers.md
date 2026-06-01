@@ -11,16 +11,16 @@ from `versions.json` and published in the same CI run as the images.
 npx @stuffbucket/ai-cli-codex -- exec "run the tests"
 ```
 
-`npx @stuffbucket/ai-cli-codex@<version>` runs `ghcr.io/stuffbucket/codex:<version>`
+`npx @stuffbucket/ai-cli-codex@<version>` runs `ghcr.io/stuffbucket/ai-cli-codex:<version>`
 (see [The images](/ai-cli-images/guides/images/) for current versions).
 
 ## Packages
 
 | Package | Runs |
 | --- | --- |
-| `@stuffbucket/ai-cli-claude` | `ghcr.io/stuffbucket/claude-code` |
-| `@stuffbucket/ai-cli-copilot` | `ghcr.io/stuffbucket/copilot` |
-| `@stuffbucket/ai-cli-codex` | `ghcr.io/stuffbucket/codex` |
+| `@stuffbucket/ai-cli-claude` | `ghcr.io/stuffbucket/ai-cli-claude` |
+| `@stuffbucket/ai-cli-copilot` | `ghcr.io/stuffbucket/ai-cli-copilot` |
+| `@stuffbucket/ai-cli-codex` | `ghcr.io/stuffbucket/ai-cli-codex` |
 | `@stuffbucket/ai-cli-key-proxy` | the credential-injection proxy |
 | `@stuffbucket/ai-cli-core` | shared `docker run` translator (a dependency) |
 

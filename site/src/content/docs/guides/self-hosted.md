@@ -13,18 +13,18 @@ gateway, Bedrock/Vertex). The override is also recorded in the
 docker run --rm -it -v "$PWD:/workspace" \
   -e ANTHROPIC_BASE_URL=http://host.docker.internal:4000 \
   -e ANTHROPIC_AUTH_TOKEN=local \
-  ghcr.io/stuffbucket/claude-code
+  ghcr.io/stuffbucket/ai-cli-claude
 # Bedrock/Vertex: -e CLAUDE_CODE_USE_BEDROCK=1 / -e CLAUDE_CODE_USE_VERTEX=1
 
 # Copilot -> BYOK; with a provider base URL, GitHub auth is NOT required
 docker run --rm -it -v "$PWD:/workspace" \
   -e COPILOT_PROVIDER_BASE_URL=http://host.docker.internal:11434/v1 \
   -e COPILOT_PROVIDER_TYPE=openai \
-  ghcr.io/stuffbucket/copilot
+  ghcr.io/stuffbucket/ai-cli-copilot
 
 # Codex -> built-in OSS providers, no OpenAI key
 docker run --rm -it -v "$PWD:/workspace" \
-  ghcr.io/stuffbucket/codex --oss --local-provider ollama
+  ghcr.io/stuffbucket/ai-cli-codex --oss --local-provider ollama
 ```
 
 For a custom (non-OSS) Codex endpoint, use `~/.codex/config.toml`:

@@ -16,7 +16,7 @@ services:
     expose: ["8787"]
 
   claude:
-    image: ghcr.io/stuffbucket/claude-code:latest
+    image: ghcr.io/stuffbucket/ai-cli-claude:latest
     depends_on: [key-proxy]
     environment:
       # The container points at the proxy and carries a throwaway token, not the key.

@@ -8,7 +8,7 @@ description: It just works on Docker Desktop and Linux — plus the few flags yo
 On **Docker Desktop** (macOS/Windows) and on **Linux**, this is all you need:
 
 ```sh
-docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/codex
+docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/ai-cli-codex
 ```
 
 …or just `npx -y @stuffbucket/ai-cli-codex`. No `--user`, no `--add-host`, no uid
@@ -56,7 +56,7 @@ You don't need a system container — Incus runs the OCI images directly:
 
 ```sh
 incus remote add ghcr https://ghcr.io --protocol oci
-incus launch ghcr:stuffbucket/codex codex -- --version
+incus launch ghcr:stuffbucket/ai-cli-codex codex -- --version
 ```
 
 Incus instances are persistent, so the first-run install into `/home/node/.local`

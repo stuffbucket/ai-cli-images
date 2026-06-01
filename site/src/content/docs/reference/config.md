@@ -29,7 +29,7 @@ so it's discoverable with `docker inspect` — no docs required.
 | `co.stuffbucket.cli.install.mode` | `deferred` or `baked` |
 
 ```sh
-docker inspect ghcr.io/stuffbucket/codex --format '{{json .Config.Labels}}' | jq .
+docker inspect ghcr.io/stuffbucket/ai-cli-codex --format '{{json .Config.Labels}}' | jq .
 ```
 
 ## Wrapper env knobs

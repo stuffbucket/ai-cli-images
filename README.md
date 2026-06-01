@@ -12,9 +12,9 @@ mounts your project at `/workspace`. Multi-arch (`linux/amd64`, `linux/arm64`).
 
 | Image | CLI | Base | Install | Pull |
 | --- | --- | --- | --- | --- |
-| `claude-code` | [Anthropic Claude Code](https://www.npmjs.com/package/@anthropic-ai/claude-code) | `node:24-alpine` | deferred¹ | `docker pull ghcr.io/stuffbucket/claude-code` |
-| `copilot` | [GitHub Copilot CLI](https://www.npmjs.com/package/@github/copilot) | `node:24-slim` | deferred¹ | `docker pull ghcr.io/stuffbucket/copilot` |
-| `codex` | [OpenAI Codex CLI](https://www.npmjs.com/package/@openai/codex) | `node:24-alpine` | baked | `docker pull ghcr.io/stuffbucket/codex` |
+| `claude-code` | [Anthropic Claude Code](https://www.npmjs.com/package/@anthropic-ai/claude-code) | `node:24-alpine` | deferred¹ | `docker pull ghcr.io/stuffbucket/ai-cli-claude` |
+| `copilot` | [GitHub Copilot CLI](https://www.npmjs.com/package/@github/copilot) | `node:24-slim` | deferred¹ | `docker pull ghcr.io/stuffbucket/ai-cli-copilot` |
+| `codex` | [OpenAI Codex CLI](https://www.npmjs.com/package/@openai/codex) | `node:24-alpine` | baked | `docker pull ghcr.io/stuffbucket/ai-cli-codex` |
 
 ¹ **Deferred install.** `claude-code` and `copilot` are proprietary and their
 licenses don't grant general redistribution, so these images do **not** contain
@@ -54,10 +54,10 @@ after the image name is passed straight to it:
 
 ```sh
 # Run a CLI against the current directory
-docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/codex
+docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/ai-cli-codex
 
 # Drop into a shell instead of the CLI
-docker run --rm -it --entrypoint bash -v "$PWD:/workspace" ghcr.io/stuffbucket/codex
+docker run --rm -it --entrypoint bash -v "$PWD:/workspace" ghcr.io/stuffbucket/ai-cli-codex
 ```
 
 For the **deferred-install** images (`claude-code`, `copilot`), add a named
@@ -69,7 +69,7 @@ docker run --rm -it \
   -v "$PWD:/workspace" \
   -v claude-cli:/home/node/.local \      # persists the installed CLI
   -v "$HOME/.claude:/home/node/.claude" \ # persists your login
-  ghcr.io/stuffbucket/claude-code
+  ghcr.io/stuffbucket/ai-cli-claude
 ```
 
 The first run needs network (to fetch the CLI from npm); subsequent runs reuse
@@ -85,7 +85,7 @@ docker run --rm -it \
   -v "$PWD:/workspace" \
   --user "$(id -u):$(id -g)" \                       # match host file ownership (native Linux)
   --add-host=host.docker.internal:host-gateway \     # reach a model server on the host
-  ghcr.io/stuffbucket/codex
+  ghcr.io/stuffbucket/ai-cli-codex
 # Podman (rootless): add  --userns=keep-id:uid=1000,gid=1000
 # Colima:            colima start --mount-type=virtiofs   (better uid mapping + I/O perf)
 ```
@@ -109,7 +109,7 @@ vendor path there are two ways, and you can mix them:
 Each image declares its own contract — discoverable without reading these docs:
 
 ```sh
-docker inspect ghcr.io/stuffbucket/claude-code \
+docker inspect ghcr.io/stuffbucket/ai-cli-claude \
   --format '{{json .Config.Labels}}' | jq '."co.stuffbucket.cli.auth.env", ."co.stuffbucket.cli.config.dir"'
 # "ANTHROPIC_API_KEY"
 # "/home/node/.claude"
@@ -124,15 +124,15 @@ docker inspect ghcr.io/stuffbucket/claude-code \
 ```sh
 # CI / scripting — key from the host environment
 docker run --rm -v "$PWD:/workspace" -e ANTHROPIC_API_KEY \
-  ghcr.io/stuffbucket/claude-code -p "summarize this repo"
+  ghcr.io/stuffbucket/ai-cli-claude -p "summarize this repo"
 
 # Interactive — log in once, persist it on the host
 docker run --rm -it -v "$PWD:/workspace" \
-  -v "$HOME/.codex:/home/node/.codex" ghcr.io/stuffbucket/codex
+  -v "$HOME/.codex:/home/node/.codex" ghcr.io/stuffbucket/ai-cli-codex
 
 # Reuse an existing host login (e.g. Copilot/gh token)
 docker run --rm -it -v "$PWD:/workspace" -e GH_TOKEN \
-  ghcr.io/stuffbucket/copilot
+  ghcr.io/stuffbucket/ai-cli-copilot
 ```
 
 Inside the container `$HOME` is `/home/node`. Mounting a host config dir
@@ -151,19 +151,19 @@ in the `co.stuffbucket.cli.endpoint.*` label.
 docker run --rm -it -v "$PWD:/workspace" \
   -e ANTHROPIC_BASE_URL=http://host.docker.internal:4000 \
   -e ANTHROPIC_AUTH_TOKEN=local \
-  ghcr.io/stuffbucket/claude-code
+  ghcr.io/stuffbucket/ai-cli-claude
 # (Bedrock/Vertex instead: -e CLAUDE_CODE_USE_BEDROCK=1 / -e CLAUDE_CODE_USE_VERTEX=1)
 
 # Copilot -> BYOK; with a provider base URL, GitHub auth is NOT required
 docker run --rm -it -v "$PWD:/workspace" \
   -e COPILOT_PROVIDER_BASE_URL=http://host.docker.internal:11434/v1 \
   -e COPILOT_PROVIDER_TYPE=openai \
-  ghcr.io/stuffbucket/copilot
+  ghcr.io/stuffbucket/ai-cli-copilot
 # (COPILOT_PROVIDER_API_KEY is optional — only if your endpoint requires it)
 
 # Codex -> built-in OSS providers, no OpenAI key
 docker run --rm -it -v "$PWD:/workspace" \
-  ghcr.io/stuffbucket/codex --oss --local-provider ollama
+  ghcr.io/stuffbucket/ai-cli-codex --oss --local-provider ollama
 ```
 
 For a custom (non-OSS) endpoint, Codex uses `~/.codex/config.toml` instead of an
@@ -196,7 +196,7 @@ Packages follow `@stuffbucket/ai-cli-<cli>` (e.g. `ai-cli-codex`, `ai-cli-claude
 `ai-cli-copilot`).
 
 ```sh
-# runs ghcr.io/stuffbucket/codex:0.135.0 against the current directory
+# runs ghcr.io/stuffbucket/ai-cli-codex:0.135.0 against the current directory
 npx @stuffbucket/ai-cli-codex@0.135.0 -- exec "run the tests"
 
 # latest

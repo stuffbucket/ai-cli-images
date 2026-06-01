@@ -25,7 +25,7 @@ keeps a persistent volume for the runtime-installed CLI.
 ## via docker
 
 ```sh
-docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/codex
+docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/ai-cli-codex
 ```
 
 For the **deferred-install** images (`claude-code`, `copilot`), add a named
@@ -36,7 +36,7 @@ docker run --rm -it \
   -v "$PWD:/workspace" \
   -v claude-cli:/home/node/.local \       # persists the installed CLI
   -v "$HOME/.claude:/home/node/.claude" \ # persists your login
-  ghcr.io/stuffbucket/claude-code
+  ghcr.io/stuffbucket/ai-cli-claude
 ```
 
 ## Authenticate
@@ -46,7 +46,7 @@ your shell), or log in interactively with `-it`:
 
 ```sh
 docker run --rm -v "$PWD:/workspace" -e ANTHROPIC_API_KEY \
-  ghcr.io/stuffbucket/claude-code -p "explain this codebase"
+  ghcr.io/stuffbucket/ai-cli-claude -p "explain this codebase"
 ```
 
 See [Credentials](/ai-cli-images/guides/credentials/) for every CLI's auth env

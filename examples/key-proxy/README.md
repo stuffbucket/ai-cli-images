@@ -38,7 +38,7 @@ docker run --rm -it -v "$PWD:/workspace" \
   --add-host=host.docker.internal:host-gateway \
   -e ANTHROPIC_BASE_URL=http://host.docker.internal:8787 \
   -e ANTHROPIC_AUTH_TOKEN=local \
-  ghcr.io/stuffbucket/claude-code
+  ghcr.io/stuffbucket/ai-cli-claude
 ```
 
 ## Hardening: scoped tokens

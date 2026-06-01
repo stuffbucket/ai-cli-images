@@ -22,7 +22,7 @@ two ways (mix as needed):
 Each image also declares this in labels, discoverable without docs:
 
 ```sh
-docker inspect ghcr.io/stuffbucket/claude-code \
+docker inspect ghcr.io/stuffbucket/ai-cli-claude \
   --format '{{json .Config.Labels}}' \
   | jq '."co.stuffbucket.cli.auth.env", ."co.stuffbucket.cli.config.dir"'
 ```
@@ -32,11 +32,11 @@ docker inspect ghcr.io/stuffbucket/claude-code \
 ```sh
 # CI / scripting — key from the host environment
 docker run --rm -v "$PWD:/workspace" -e ANTHROPIC_API_KEY \
-  ghcr.io/stuffbucket/claude-code -p "summarize this repo"
+  ghcr.io/stuffbucket/ai-cli-claude -p "summarize this repo"
 
 # Interactive — log in once, persist it on the host
 docker run --rm -it -v "$PWD:/workspace" \
-  -v "$HOME/.codex:/home/node/.codex" ghcr.io/stuffbucket/codex
+  -v "$HOME/.codex:/home/node/.codex" ghcr.io/stuffbucket/ai-cli-codex
 ```
 
 Inside the container `$HOME` is `/home/node`. To run **without** a vendor key at

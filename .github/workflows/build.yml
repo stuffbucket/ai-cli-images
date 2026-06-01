@@ -33,9 +33,10 @@ jobs:
       # records the human-readable version.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - id: set
-        # Turn versions.json {"name":{"version","base"},...} into a build matrix.
+        # Turn versions.json into a build matrix. `name` is the build-context dir
+        # under images/; `image` is the published GHCR package name.
         run: |
-          matrix="$(jq -c '{include: [to_entries[] | {name: .key, version: .value.version, base: .value.base}]}' versions.json)"
+          matrix="$(jq -c '{include: [to_entries[] | {name: .key, version: .value.version, base: .value.base, image: .value.image}]}' versions.json)"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "$matrix" | jq .
 
@@ -65,7 +66,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.name }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
           # Base variant (alpine/slim) is encoded as a tag suffix, matching the
           # convention of the official node/python images. With one base per
           # image today, the unsuffixed `latest`/`<version>` and the floating

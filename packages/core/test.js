@@ -18,7 +18,7 @@ t("codex (baked): image tag + workspace, no install volume", () => {
     "run", "--rm", "-i",
     "-v", "/repo:/workspace",
     "--add-host=host.docker.internal:host-gateway",
-    "ghcr.io/stuffbucket/codex:0.135.0",
+    "ghcr.io/stuffbucket/ai-cli-codex:0.135.0",
     "--version",
   ]);
 });
@@ -27,7 +27,7 @@ t("claude-code (deferred): adds the persistent install volume", () => {
   const a = buildArgs({ cli: "claude-code", version: "2.1.158" }, [], baseEnv, false);
   const i = a.indexOf("aicli-claude-code:/home/node/.local");
   assert.ok(i > 0 && a[i - 1] === "-v", "deferred image gets a -v install volume");
-  assert.ok(a.includes("ghcr.io/stuffbucket/claude-code:2.1.158"));
+  assert.ok(a.includes("ghcr.io/stuffbucket/ai-cli-claude:2.1.158"));
 });
 
 t("forwards only auth env vars that are set", () => {
@@ -47,7 +47,7 @@ t("TTY -> -it, non-TTY -> -i", () => {
 
 t("registry override via AI_CLI_REGISTRY", () => {
   const a = buildArgs({ cli: "codex", version: "1" }, [], { ...baseEnv, AI_CLI_REGISTRY: "reg.local/x" }, false);
-  assert.ok(a.includes("reg.local/x/codex:1"));
+  assert.ok(a.includes("reg.local/x/ai-cli-codex:1"));
 });
 
 t("AI_CLI_ENV adds extra pass-through vars; AI_CLI_DOCKER_ARGS appended", () => {

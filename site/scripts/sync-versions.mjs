@@ -23,18 +23,18 @@ const CLI_LABEL = {
 };
 
 const data = Object.fromEntries(
-  Object.entries(versions).map(([image, meta]) => {
-    const short = SHORT[image] || image;
+  Object.entries(versions).map(([key, meta]) => {
+    const short = SHORT[key] || key;
     return [
-      image,
+      key,
       {
-        image,
-        label: CLI_LABEL[image] || image,
+        image: meta.image, // published GHCR package name (e.g. ai-cli-codex)
+        label: CLI_LABEL[key] || key,
         version: meta.version,
         base: meta.base,
         tag: `${meta.version}-${meta.base}`,
         wrapper: `@stuffbucket/ai-cli-${short}`,
-        ghcr: `ghcr.io/stuffbucket/${image}`,
+        ghcr: `ghcr.io/stuffbucket/${meta.image}`,
       },
     ];
   }),

@@ -64,9 +64,9 @@ function buildArgs({ cli, version }, argv = [], env = process.env, tty = undefin
   const args = ["run", "--rm"];
   args.push(interactive ? "-it" : "-i");
 
-  // Workspace at /work (alias /workspace).
+  // Workspace at /workspace (the image keeps /work as an alias).
   const workdir = env.AI_CLI_WORKDIR || process.cwd();
-  args.push("-v", `${workdir}:/work`);
+  args.push("-v", `${workdir}:/workspace`);
 
   // Match host file ownership off Docker Desktop (harmless on Docker Desktop).
   if (env.AI_CLI_MATCH_USER === "1") {

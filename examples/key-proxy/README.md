@@ -34,7 +34,7 @@ PROXY_KEY_ENV=ANTHROPIC_API_KEY \
 then point any of the images at it:
 
 ```sh
-docker run --rm -it -v "$PWD:/work" \
+docker run --rm -it -v "$PWD:/workspace" \
   --add-host=host.docker.internal:host-gateway \
   -e ANTHROPIC_BASE_URL=http://host.docker.internal:8787 \
   -e ANTHROPIC_AUTH_TOKEN=local \

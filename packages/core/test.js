@@ -16,7 +16,7 @@ t("codex (baked): image tag + workspace, no install volume", () => {
   const a = buildArgs({ cli: "codex", version: "0.135.0" }, ["--version"], baseEnv, false);
   assert.deepStrictEqual(a, [
     "run", "--rm", "-i",
-    "-v", "/repo:/work",
+    "-v", "/repo:/workspace",
     "--add-host=host.docker.internal:host-gateway",
     "ghcr.io/stuffbucket/codex:0.135.0",
     "--version",

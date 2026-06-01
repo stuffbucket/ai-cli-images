@@ -23,7 +23,7 @@ services:
       ANTHROPIC_BASE_URL: http://key-proxy:8787
       ANTHROPIC_AUTH_TOKEN: local
     volumes:
-      - "./:/work"
+      - "./:/workspace"
       - "claude-cli:/home/node/.local"     # persist the deferred-installed CLI
     stdin_open: true
     tty: true

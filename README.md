@@ -4,7 +4,7 @@ Small, ready-to-run container images for AI coding-assistant CLIs, published to
 the GitHub Container Registry for the community.
 
 Each image bundles one CLI on a minimal base, runs as an unprivileged user, and
-mounts your project at `/work`. Multi-arch (`linux/amd64`, `linux/arm64`).
+mounts your project at `/workspace`. Multi-arch (`linux/amd64`, `linux/arm64`).
 
 ## Images
 
@@ -47,15 +47,15 @@ any image is also recorded in its `org.opencontainers.image.base.name` label.
 
 ## Usage
 
-Mount your project into `/work` (alias `/workspace`) and run the CLI — anything
+Mount your project into `/workspace` (alias `/work`) and run the CLI — anything
 after the image name is passed straight to it:
 
 ```sh
 # Run a CLI against the current directory
-docker run --rm -it -v "$PWD:/work" ghcr.io/stuffbucket/codex
+docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/codex
 
 # Drop into a shell instead of the CLI
-docker run --rm -it --entrypoint bash -v "$PWD:/work" ghcr.io/stuffbucket/codex
+docker run --rm -it --entrypoint bash -v "$PWD:/workspace" ghcr.io/stuffbucket/codex
 ```
 
 For the **deferred-install** images (`claude-code`, `copilot`), add a named
@@ -64,7 +64,7 @@ re-fetched each time:
 
 ```sh
 docker run --rm -it \
-  -v "$PWD:/work" \
+  -v "$PWD:/workspace" \
   -v claude-cli:/home/node/.local \      # persists the installed CLI
   -v "$HOME/.claude:/home/node/.claude" \ # persists your login
   ghcr.io/stuffbucket/claude-code
@@ -80,7 +80,7 @@ On Docker Desktop the defaults just work. Off Docker Desktop the container's
 
 ```sh
 docker run --rm -it \
-  -v "$PWD:/work" \
+  -v "$PWD:/workspace" \
   --user "$(id -u):$(id -g)" \                       # match host file ownership (native Linux)
   --add-host=host.docker.internal:host-gateway \     # reach a model server on the host
   ghcr.io/stuffbucket/codex
@@ -121,15 +121,15 @@ docker inspect ghcr.io/stuffbucket/claude-code \
 
 ```sh
 # CI / scripting — key from the host environment
-docker run --rm -v "$PWD:/work" -e ANTHROPIC_API_KEY \
+docker run --rm -v "$PWD:/workspace" -e ANTHROPIC_API_KEY \
   ghcr.io/stuffbucket/claude-code -p "summarize this repo"
 
 # Interactive — log in once, persist it on the host
-docker run --rm -it -v "$PWD:/work" \
+docker run --rm -it -v "$PWD:/workspace" \
   -v "$HOME/.codex:/home/node/.codex" ghcr.io/stuffbucket/codex
 
 # Reuse an existing host login (e.g. Copilot/gh token)
-docker run --rm -it -v "$PWD:/work" -e GH_TOKEN \
+docker run --rm -it -v "$PWD:/workspace" -e GH_TOKEN \
   ghcr.io/stuffbucket/copilot
 ```
 
@@ -146,21 +146,21 @@ in the `co.stuffbucket.cli.endpoint.*` label.
 ```sh
 # Claude Code -> any Anthropic-compatible endpoint (key optional; a bearer
 # token or a dummy key satisfies the client)
-docker run --rm -it -v "$PWD:/work" \
+docker run --rm -it -v "$PWD:/workspace" \
   -e ANTHROPIC_BASE_URL=http://host.docker.internal:4000 \
   -e ANTHROPIC_AUTH_TOKEN=local \
   ghcr.io/stuffbucket/claude-code
 # (Bedrock/Vertex instead: -e CLAUDE_CODE_USE_BEDROCK=1 / -e CLAUDE_CODE_USE_VERTEX=1)
 
 # Copilot -> BYOK; with a provider base URL, GitHub auth is NOT required
-docker run --rm -it -v "$PWD:/work" \
+docker run --rm -it -v "$PWD:/workspace" \
   -e COPILOT_PROVIDER_BASE_URL=http://host.docker.internal:11434/v1 \
   -e COPILOT_PROVIDER_TYPE=openai \
   ghcr.io/stuffbucket/copilot
 # (COPILOT_PROVIDER_API_KEY is optional — only if your endpoint requires it)
 
 # Codex -> built-in OSS providers, no OpenAI key
-docker run --rm -it -v "$PWD:/work" \
+docker run --rm -it -v "$PWD:/workspace" \
   ghcr.io/stuffbucket/codex --oss --local-provider ollama
 ```
 
@@ -198,7 +198,7 @@ npx @stuffbucket/codex@0.135.0 -- exec "run the tests"
 npx -y @stuffbucket/claude-code -p "summarize this repo"
 ```
 
-The wrapper mounts `$PWD` at `/work`, detects TTY vs CI, forwards the CLI's
+The wrapper mounts `$PWD` at `/workspace`, detects TTY vs CI, forwards the CLI's
 auth/endpoint env vars **that are set** (the value stays on the host side of
 `-e NAME`), adds a persistent volume for the deferred-install CLIs, and wires
 `host.docker.internal`. Tunables (env): `AI_CLI_REGISTRY` (use a mirror),

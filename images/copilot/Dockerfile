@@ -42,23 +42,24 @@ LABEL org.opencontainers.image.title="copilot" \
 #                  endpoint; GitHub auth is then not required (key optional for
 #                  local providers like Ollama)
 #   config.dir   : mount this to persist an interactive login between runs
-#   workspace.dir: bind-mount your project here (alias /workspace)
+#   workspace.dir: bind-mount your project here (alias /work)
 #   install.mode : "deferred" — the CLI is fetched on first run, not baked in
 LABEL co.stuffbucket.cli.auth.env="COPILOT_GITHUB_TOKEN,GH_TOKEN,GITHUB_TOKEN" \
   co.stuffbucket.cli.endpoint.env="COPILOT_PROVIDER_BASE_URL" \
   co.stuffbucket.cli.config.dir="/home/node/.copilot" \
-  co.stuffbucket.cli.workspace.dir="/work" \
+  co.stuffbucket.cli.workspace.dir="/workspace" \
   co.stuffbucket.cli.install.mode="deferred"
 
 # Run unprivileged, but allow an arbitrary --user (uid != 1000) to still write
 # config/login/install: own everything to gid 0 and mirror user perms to group
-# (the OpenShift "arbitrary uid" pattern). /workspace aliases /work.
-RUN mkdir -p /home/node/.local /home/node/.copilot /work \
-  && ln -s /work /workspace \
-  && chown -R node:0 /home/node /work \
-  && chmod -R g=u /home/node /work
+# (the OpenShift "arbitrary uid" pattern). /work is kept as an alias of
+# /workspace for backward compatibility.
+RUN mkdir -p /home/node/.local /home/node/.copilot /workspace \
+  && ln -s /workspace /work \
+  && chown -R node:0 /home/node /workspace \
+  && chmod -R g=u /home/node /workspace
 USER node
-WORKDIR /work
+WORKDIR /workspace
 
 # Persist the runtime-installed CLI across runs: docker run -v copilot-cli:/home/node/.local
 VOLUME ["/home/node/.local"]

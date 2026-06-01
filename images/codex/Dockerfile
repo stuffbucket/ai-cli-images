@@ -32,22 +32,23 @@ LABEL org.opencontainers.image.title="codex" \
 #                   not an env var — `--oss --local-provider ollama|lmstudio`, or
 #                   a [model_providers] entry with base_url in ~/.codex/config.toml
 #   config.dir    : mount this to persist login / config.toml between runs
-#   workspace.dir : bind-mount your project here (alias /workspace)
+#   workspace.dir : bind-mount your project here (alias /work)
 #   install.mode  : "baked" — the CLI is installed in the image (Apache-2.0)
 LABEL co.stuffbucket.cli.auth.env="OPENAI_API_KEY" \
   co.stuffbucket.cli.endpoint.flag="--oss --local-provider <ollama|lmstudio>" \
   co.stuffbucket.cli.config.dir="/home/node/.codex" \
-  co.stuffbucket.cli.workspace.dir="/work" \
+  co.stuffbucket.cli.workspace.dir="/workspace" \
   co.stuffbucket.cli.install.mode="baked"
 
 # Run unprivileged, but allow an arbitrary --user (uid != 1000) to still write
 # config/login: own everything to gid 0 and mirror user perms to group
-# (the OpenShift "arbitrary uid" pattern). /workspace aliases /work.
-RUN mkdir -p /home/node/.codex /work \
-  && ln -s /work /workspace \
-  && chown -R node:0 /home/node /work \
-  && chmod -R g=u /home/node /work
+# (the OpenShift "arbitrary uid" pattern). /work is kept as an alias of
+# /workspace for backward compatibility.
+RUN mkdir -p /home/node/.codex /workspace \
+  && ln -s /workspace /work \
+  && chown -R node:0 /home/node /workspace \
+  && chmod -R g=u /home/node /workspace
 USER node
-WORKDIR /work
+WORKDIR /workspace
 
 ENTRYPOINT ["tini", "--", "codex"]

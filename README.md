@@ -235,7 +235,11 @@ This is an npm-workspaces monorepo:
   weekly (for base-image security updates), and on demand — with SBOM +
   provenance attestations. Its `publish-npm` job then publishes the npx wrappers
   **in the same run**, so the npm package version === the image tag === the CLI
-  version (needs an `NPM_TOKEN` secret; without it, images still publish).
+  version. Publishing uses npm **OIDC trusted publishing** — no `NPM_TOKEN`
+  secret. To enable it: link Trusted Publishing on npmjs for each package
+  (owner `stuffbucket` / repo `ai-cli-images` / workflow `build.yml`), then set
+  the repo variable `NPM_PUBLISH=true`. Until then the job is skipped and images
+  still publish.
 - `.github/workflows/update-versions.yml` checks npm weekly and opens a PR that
   bumps the pinned CLI versions, refreshes the digest-pinned base images, and
   regenerates the wrappers.

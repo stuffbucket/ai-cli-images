@@ -102,27 +102,33 @@ jobs:
   # are pushed; only publishes versions not already on npm (idempotent).
   publish-npm:
     needs: [prepare, build]
-    if: ${{ github.event_name != 'pull_request' }}
+    # Flip the repo variable NPM_PUBLISH=true once Trusted Publishing is linked on
+    # npmjs for each package — until then this job is skipped so the build stays
+    # green (no token to mask, no premature 404s).
+    if: ${{ github.event_name != 'pull_request' && vars.NPM_PUBLISH == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # OIDC trusted publishing — no NPM_TOKEN. The runner exchanges a GitHub
+      # OIDC token for npm publish auth; requires Trusted Publishing to be linked
+      # on npmjs for each package (owner stuffbucket / repo ai-cli-images /
+      # workflow build.yml). Provenance attestations are produced automatically.
+      id-token: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+      # OIDC token-exchange auth needs npm >= 11.5.1 (node 24 may ship an older
+      # 11.x; provenance would sign but the publish PUT would 404 without this).
+      - name: Ensure npm supports OIDC publishing
+        run: npm install -g npm@latest && npm --version
       - name: Generate version-synced wrappers from versions.json
         run: node scripts/gen-clis.mjs
-      - name: Publish changed packages
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish changed packages (OIDC trusted publishing)
         run: |
           set -eu
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::notice::NPM_TOKEN secret not set — skipping npm publish (images still published)."
-            exit 0
-          fi
           publish_if_new() {
             d="$1"
             name="$(jq -r .name "$d/package.json")"

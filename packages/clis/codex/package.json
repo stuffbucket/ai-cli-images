@@ -1,0 +1,23 @@
+{
+  "name": "@stuffbucket/codex",
+  "version": "0.135.0",
+  "description": "npx wrapper that runs the codex CLI via the ghcr.io/stuffbucket/codex container image (version-locked 1:1 with the CLI)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stuffbucket/ai-cli-images.git",
+    "directory": "packages/clis/codex"
+  },
+  "bin": {
+    "codex": "run.js"
+  },
+  "dependencies": {
+    "@stuffbucket/ai-cli-core": "^0.1.0"
+  },
+  "files": [
+    "run.js"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

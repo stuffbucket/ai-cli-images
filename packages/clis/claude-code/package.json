@@ -1,0 +1,23 @@
+{
+  "name": "@stuffbucket/claude-code",
+  "version": "2.1.158",
+  "description": "npx wrapper that runs the claude-code CLI via the ghcr.io/stuffbucket/claude-code container image (version-locked 1:1 with the CLI)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stuffbucket/ai-cli-images.git",
+    "directory": "packages/clis/claude-code"
+  },
+  "bin": {
+    "claude-code": "run.js"
+  },
+  "dependencies": {
+    "@stuffbucket/ai-cli-core": "^0.1.0"
+  },
+  "files": [
+    "run.js"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

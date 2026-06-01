@@ -183,14 +183,64 @@ env_key = "LOCAL_API_KEY"   # may be a dummy value for local servers
 Images run as the unprivileged `node` user (uid 1000). If your host files have a
 different owner, add `--user "$(id -u):$(id -g)"`.
 
+## Use it in CI/CD (`npx`)
+
+Each image has a matching npm wrapper whose **version is locked 1:1 to the CLI**,
+so you never deal with `docker run` flags or image tags — and the package and the
+image can never drift (the wrappers are generated from `versions.json` and
+published in the same CI run as the images).
+
+```sh
+# runs ghcr.io/stuffbucket/codex:0.135.0 against the current directory
+npx @stuffbucket/codex@0.135.0 -- exec "run the tests"
+
+# latest
+npx -y @stuffbucket/claude-code -p "summarize this repo"
+```
+
+The wrapper mounts `$PWD` at `/work`, detects TTY vs CI, forwards the CLI's
+auth/endpoint env vars **that are set** (the value stays on the host side of
+`-e NAME`), adds a persistent volume for the deferred-install CLIs, and wires
+`host.docker.internal`. Tunables (env): `AI_CLI_REGISTRY` (use a mirror),
+`AI_CLI_ENV="FOO,BAR"` (forward extra vars), `AI_CLI_MATCH_USER=1` (run as your
+uid:gid on native Linux), `AI_CLI_DOCKER_ARGS` (extra docker flags).
+
+```yaml
+# GitHub Actions step — no Docker boilerplate, key injected as env
+- run: npx -y @stuffbucket/codex@0.135.0 -- exec "lint and fix"
+  env: { OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} }
+```
+
+For keyless runs (the key never enters the container), front any image with the
+injection proxy — [`@stuffbucket/ai-cli-key-proxy`](packages/key-proxy) — see
+[`examples/key-proxy/`](examples/key-proxy).
+
+## Repository layout
+
+This is an npm-workspaces monorepo:
+
+| Path | What |
+| --- | --- |
+| `images/<cli>/` | the Docker image contexts (published to GHCR) |
+| `packages/core/` | `@stuffbucket/ai-cli-core` — shared `docker run` translator |
+| `packages/clis/<cli>/` | `@stuffbucket/<cli>` — generated npx wrappers (1:1 with the CLI) |
+| `packages/key-proxy/` | `@stuffbucket/ai-cli-key-proxy` — credential-injection proxy |
+| `scripts/gen-clis.mjs` | regenerates the wrappers from `versions.json` (`npm run gen`) |
+
 ## How it's built
 
 - `versions.json` is the source of truth: image name → pinned CLI version.
 - `.github/workflows/build.yml` turns that into a build matrix and pushes each
   image multi-arch to `ghcr.io/stuffbucket/<name>` on every push to `main`,
-  weekly (for base-image security updates), and on demand.
-- `.github/workflows/update-versions.yml` checks npm weekly and opens a PR when
-  a newer CLI version ships.
+  weekly (for base-image security updates), and on demand — with SBOM +
+  provenance attestations. Its `publish-npm` job then publishes the npx wrappers
+  **in the same run**, so the npm package version === the image tag === the CLI
+  version (needs an `NPM_TOKEN` secret; without it, images still publish).
+- `.github/workflows/update-versions.yml` checks npm weekly and opens a PR that
+  bumps the pinned CLI versions, refreshes the digest-pinned base images, and
+  regenerates the wrappers.
+- `.github/workflows/cleanup-packages.yml` prunes old image versions (hygiene).
+- Base images are digest-pinned and all third-party actions are SHA-pinned.
 
 ## Adding an image
 

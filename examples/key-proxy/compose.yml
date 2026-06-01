@@ -1,0 +1,32 @@
+# Vercel-style keyless agent: the API key reaches only the `key-proxy` service
+# (from your host env); the `claude` container holds just the proxy URL and never
+# sees the key. The proxy injects it into outbound requests to Anthropic.
+#
+#   ANTHROPIC_API_KEY=sk-... docker compose -f examples/key-proxy/compose.yml run --rm claude -p "hello"
+services:
+  key-proxy:
+    image: node:24-alpine
+    command: ["npx", "-y", "@stuffbucket/ai-cli-key-proxy"]
+    environment:
+      PROXY_UPSTREAM: https://api.anthropic.com
+      PROXY_INJECT_HEADER: x-api-key        # Anthropic's native API uses x-api-key
+      PROXY_KEY_ENV: ANTHROPIC_API_KEY      # read the real key from the env, here only
+      PROXY_PORT: "8787"
+    # No published ports — reachable only on the compose network.
+    expose: ["8787"]
+
+  claude:
+    image: ghcr.io/stuffbucket/claude-code:latest
+    depends_on: [key-proxy]
+    environment:
+      # The container points at the proxy and carries a throwaway token, not the key.
+      ANTHROPIC_BASE_URL: http://key-proxy:8787
+      ANTHROPIC_AUTH_TOKEN: local
+    volumes:
+      - "./:/work"
+      - "claude-cli:/home/node/.local"     # persist the deferred-installed CLI
+    stdin_open: true
+    tty: true
+
+volumes:
+  claude-cli:

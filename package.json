@@ -1,0 +1,23 @@
+{
+  "name": "@stuffbucket/ai-cli-images-monorepo",
+  "private": true,
+  "description": "Container images for AI coding CLIs, plus version-synced npx wrappers and a key-injection proxy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stuffbucket/ai-cli-images.git"
+  },
+  "workspaces": [
+    "packages/core",
+    "packages/key-proxy",
+    "packages/clis/*"
+  ],
+  "scripts": {
+    "gen": "node scripts/gen-clis.mjs",
+    "check:gen": "node scripts/gen-clis.mjs && git diff --exit-code packages/clis",
+    "test": "node packages/core/test.js && node packages/key-proxy/test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

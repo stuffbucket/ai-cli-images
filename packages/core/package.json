@@ -1,0 +1,16 @@
+{
+  "name": "@stuffbucket/ai-cli-core",
+  "version": "0.1.0",
+  "description": "Shared runner that maps an AI CLI invocation to a docker run of the matching ai-cli-images image",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stuffbucket/ai-cli-images.git",
+    "directory": "packages/core"
+  },
+  "main": "index.js",
+  "files": ["index.js"],
+  "engines": {
+    "node": ">=20"
+  }
+}

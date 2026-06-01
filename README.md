@@ -6,6 +6,8 @@ the GitHub Container Registry for the community.
 Each image bundles one CLI on a minimal base, runs as an unprivileged user, and
 mounts your project at `/workspace`. Multi-arch (`linux/amd64`, `linux/arm64`).
 
+📚 **Docs:** <https://stuffbucket.github.io/ai-cli-images>
+
 ## Images
 
 | Image | CLI | Base | Install | Pull |

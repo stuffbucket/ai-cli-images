@@ -1,0 +1,58 @@
+---
+title: ai-cli-images
+description: Container images and version-synced npx wrappers for AI coding-assistant CLIs — Claude Code, GitHub Copilot, and OpenAI Codex.
+template: splash
+hero:
+  tagline: Run Claude Code, GitHub Copilot, and OpenAI Codex from a container — or a one-line npx — with no local install.
+  actions:
+    - text: Quick start
+      link: /ai-cli-images/getting-started/quickstart/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/stuffbucket/ai-cli-images
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## What this is
+
+Small, multi-arch container images (published to GHCR) that each bundle one AI
+coding-assistant CLI, plus matching **`npx` wrappers** whose versions are locked
+1:1 to the CLI — so the package and the image can never drift.
+
+<CardGrid stagger>
+  <Card title="One-line npx" icon="rocket">
+    `npx @stuffbucket/ai-cli-codex@0.135.0 -- exec "run the tests"` — no Docker
+    boilerplate, no local CLI install.
+  </Card>
+  <Card title="Rootless & multi-arch" icon="approve-check">
+    Runs as a non-root user, `linux/amd64` + `linux/arm64`, with SBOM and
+    provenance attestations.
+  </Card>
+  <Card title="Bring your own key — or none" icon="setting">
+    Inject auth as env, point at a self-hosted endpoint, or keep the key out of
+    the container entirely with the injection proxy.
+  </Card>
+  <Card title="License-aware" icon="seti:license">
+    Proprietary CLIs are installed at first run from their official npm package,
+    not redistributed; Apache-licensed Codex is baked in.
+  </Card>
+</CardGrid>
+
+## The images
+
+| Image | CLI | `npx` wrapper |
+| --- | --- | --- |
+| `ghcr.io/stuffbucket/claude-code` | Anthropic Claude Code | `@stuffbucket/ai-cli-claude` |
+| `ghcr.io/stuffbucket/copilot` | GitHub Copilot CLI | `@stuffbucket/ai-cli-copilot` |
+| `ghcr.io/stuffbucket/codex` | OpenAI Codex CLI | `@stuffbucket/ai-cli-codex` |
+
+```sh
+# container
+docker run --rm -it -v "$PWD:/workspace" ghcr.io/stuffbucket/codex
+
+# or the wrapper (same thing, version-locked)
+npx -y @stuffbucket/ai-cli-codex -- exec "summarize this repo"
+```

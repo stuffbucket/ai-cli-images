@@ -190,12 +190,15 @@ so you never deal with `docker run` flags or image tags — and the package and 
 image can never drift (the wrappers are generated from `versions.json` and
 published in the same CI run as the images).
 
+Packages follow `@stuffbucket/ai-cli-<cli>` (e.g. `ai-cli-codex`, `ai-cli-claude`,
+`ai-cli-copilot`).
+
 ```sh
 # runs ghcr.io/stuffbucket/codex:0.135.0 against the current directory
-npx @stuffbucket/codex@0.135.0 -- exec "run the tests"
+npx @stuffbucket/ai-cli-codex@0.135.0 -- exec "run the tests"
 
 # latest
-npx -y @stuffbucket/claude-code -p "summarize this repo"
+npx -y @stuffbucket/ai-cli-claude -p "summarize this repo"
 ```
 
 The wrapper mounts `$PWD` at `/workspace`, detects TTY vs CI, forwards the CLI's
@@ -207,7 +210,7 @@ uid:gid on native Linux), `AI_CLI_DOCKER_ARGS` (extra docker flags).
 
 ```yaml
 # GitHub Actions step — no Docker boilerplate, key injected as env
-- run: npx -y @stuffbucket/codex@0.135.0 -- exec "lint and fix"
+- run: npx -y @stuffbucket/ai-cli-codex@0.135.0 -- exec "lint and fix"
   env: { OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} }
 ```
 
@@ -223,7 +226,7 @@ This is an npm-workspaces monorepo:
 | --- | --- |
 | `images/<cli>/` | the Docker image contexts (published to GHCR) |
 | `packages/core/` | `@stuffbucket/ai-cli-core` — shared `docker run` translator |
-| `packages/clis/<cli>/` | `@stuffbucket/<cli>` — generated npx wrappers (1:1 with the CLI) |
+| `packages/clis/<cli>/` | `@stuffbucket/ai-cli-<cli>` — generated npx wrappers (1:1 with the CLI) |
 | `packages/key-proxy/` | `@stuffbucket/ai-cli-key-proxy` — credential-injection proxy |
 | `scripts/gen-clis.mjs` | regenerates the wrappers from `versions.json` (`npm run gen`) |
 

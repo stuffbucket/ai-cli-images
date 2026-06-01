@@ -15,6 +15,7 @@ hero:
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
+import Versions from '../../components/Versions.astro';
 
 ## What this is
 
@@ -24,7 +25,7 @@ coding-assistant CLI, plus matching **`npx` wrappers** whose versions are locked
 
 <CardGrid stagger>
   <Card title="One-line npx" icon="rocket">
-    `npx @stuffbucket/ai-cli-codex@0.135.0 -- exec "run the tests"` — no Docker
+    `npx @stuffbucket/ai-cli-codex -- exec "run the tests"` — no Docker
     boilerplate, no local CLI install.
   </Card>
   <Card title="Rootless & multi-arch" icon="approve-check">
@@ -43,11 +44,7 @@ coding-assistant CLI, plus matching **`npx` wrappers** whose versions are locked
 
 ## The images
 
-| Image | CLI | `npx` wrapper |
-| --- | --- | --- |
-| `ghcr.io/stuffbucket/claude-code` | Anthropic Claude Code | `@stuffbucket/ai-cli-claude` |
-| `ghcr.io/stuffbucket/copilot` | GitHub Copilot CLI | `@stuffbucket/ai-cli-copilot` |
-| `ghcr.io/stuffbucket/codex` | OpenAI Codex CLI | `@stuffbucket/ai-cli-codex` |
+<Versions />
 
 ```sh
 # container

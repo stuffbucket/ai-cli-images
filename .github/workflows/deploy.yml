@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "versions.json" # rebuild docs when versions change (the site syncs from it)
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 

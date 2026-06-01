@@ -10,7 +10,7 @@ image-tag bookkeeping (the wrapper version pins the image).
 
 ```yaml
 - name: Codex — lint and fix
-  run: npx -y @stuffbucket/ai-cli-codex@0.135.0 -- exec "lint and fix"
+  run: npx -y @stuffbucket/ai-cli-codex -- exec "lint and fix"
   env:
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
@@ -24,7 +24,7 @@ Pin the wrapper to an exact version so the run is deterministic — that version
 the CLI version and the image tag:
 
 ```sh
-npx @stuffbucket/ai-cli-claude@2.1.158 -- -p "review the diff"
+npx @stuffbucket/ai-cli-claude@<version> -- -p "review the diff"
 ```
 
 ## Keyless CI

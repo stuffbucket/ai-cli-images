@@ -5,13 +5,15 @@
   "private": true,
   "description": "Astro Starlight documentation site for ai-cli-images",
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build",
+    "sync": "node scripts/sync-versions.mjs",
+    "dev": "npm run sync && astro dev",
+    "start": "npm run sync && astro dev",
+    "build": "npm run sync && astro build",
     "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/starlight": "0.37.3",
+    "@fontsource-variable/inter": "5.2.8",
     "astro": "5.16.11",
     "sharp": "0.34.5"
   },

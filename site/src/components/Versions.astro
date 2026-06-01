@@ -1,0 +1,41 @@
+---
+// Current versions table, synced from the repo's versions.json at build time
+// (see scripts/sync-versions.mjs). Use as <Versions /> in any .mdx page.
+import versions from '../data/versions.json';
+const rows = Object.values(versions);
+---
+
+<table>
+  <thead>
+    <tr>
+      <th>Image</th>
+      <th>CLI</th>
+      <th>Version</th>
+      <th>Immutable tag</th>
+      <th>npx wrapper</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((r) => (
+        <tr>
+          <td>
+            <code>{r.ghcr}</code>
+          </td>
+          <td>{r.label}</td>
+          <td>
+            <code>{r.version}</code>
+          </td>
+          <td>
+            <code>
+              {r.image}:{r.tag}
+            </code>
+          </td>
+          <td>
+            <code>{r.wrapper}</code>
+          </td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>

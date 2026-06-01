@@ -10,11 +10,11 @@ mount your project at `/workspace`.
 ## via npx
 
 ```sh
-# version-locked to the CLI (recommended for reproducibility)
-npx @stuffbucket/ai-cli-codex@0.135.0 -- exec "run the tests"
-
 # latest
-npx -y @stuffbucket/ai-cli-claude -p "summarize this repo"
+npx -y @stuffbucket/ai-cli-codex -- exec "run the tests"
+
+# pinned to an exact version (reproducible) — current versions are on "The images"
+npx @stuffbucket/ai-cli-claude@<version> -p "summarize this repo"
 ```
 
 Packages follow `@stuffbucket/ai-cli-<cli>`: `ai-cli-claude`, `ai-cli-copilot`,
@@ -56,6 +56,6 @@ run without a vendor key at all.
 ## Tags
 
 Pin to `<version>-<base>` for a reproducible, immutable image (e.g.
-`codex:0.135.0-alpine`); `latest`, `<version>`, and `<base>` are floating. The
+`codex:<version>-alpine`); `latest`, `<version>`, and `<base>` are floating. The
 `npx` wrapper version equals the CLI version, so pinning the wrapper pins the
 image.

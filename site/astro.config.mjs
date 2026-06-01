@@ -14,6 +14,8 @@ export default defineConfig({
       title: 'ai-cli-images',
       description:
         'Container images and version-synced npx wrappers for AI coding-assistant CLIs — Claude Code, GitHub Copilot, and OpenAI Codex.',
+      customCss: ['@fontsource-variable/inter', './src/styles/stuffbucket.css'],
+      expressiveCode: { themes: ['github-dark', 'github-light'] },
       lastUpdated: true,
       editLink: {
         baseUrl: `https://github.com/${GITHUB_USER}/${REPO_NAME}/edit/main/site/`,

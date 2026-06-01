@@ -8,10 +8,11 @@ CLI**, so the package and the image can never drift. The wrappers are generated
 from `versions.json` and published in the same CI run as the images.
 
 ```sh
-npx @stuffbucket/ai-cli-codex@0.135.0 -- exec "run the tests"
+npx @stuffbucket/ai-cli-codex -- exec "run the tests"
 ```
 
-`npx @stuffbucket/ai-cli-codex@0.135.0` runs `ghcr.io/stuffbucket/codex:0.135.0`.
+`npx @stuffbucket/ai-cli-codex@<version>` runs `ghcr.io/stuffbucket/codex:<version>`
+(see [The images](/ai-cli-images/guides/images/) for current versions).
 
 ## Packages
 

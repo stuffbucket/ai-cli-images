@@ -3,14 +3,12 @@ title: The images
 description: What each image contains, the base choices, tags, and the deferred-install model.
 ---
 
-Each image bundles one CLI on a minimal base, runs as the unprivileged `node`
-user, and mounts your project at `/workspace` (alias `/work`).
+import Versions from '../../../components/Versions.astro';
 
-| Image | CLI | Base | Install |
-| --- | --- | --- | --- |
-| `claude-code` | Anthropic Claude Code | `node:24-alpine` | deferred |
-| `copilot` | GitHub Copilot CLI | `node:24-slim` | deferred |
-| `codex` | OpenAI Codex CLI | `node:24-alpine` | baked |
+Each image bundles one CLI on a minimal base, runs as the unprivileged `node`
+user, and mounts your project at `/workspace` (alias `/work`). Current builds:
+
+<Versions />
 
 ## Why the bases differ
 
@@ -39,12 +37,12 @@ start. The mode is recorded in the `co.stuffbucket.cli.install.mode` label. See
 
 The base variant is a tag suffix, like the official `node`/`python` images:
 
-| Tag | Example | Meaning |
-| --- | --- | --- |
-| `<version>-<base>` | `codex:0.135.0-alpine` | Immutable, reproducible pin. |
-| `<version>` | `codex:0.135.0` | CLI version, floating base. |
-| `<base>` | `codex:alpine` | Latest build of that base. |
-| `latest` | `codex:latest` | Latest build on the default branch. |
+| Tag | Meaning |
+| --- | --- |
+| `<version>-<base>` | Immutable, reproducible pin (e.g. the "Immutable tag" column above). |
+| `<version>` | CLI version, floating base. |
+| `<base>` | Latest build of that base. |
+| `latest` | Latest build on the default branch. |
 
 Pin `<version>-<base>` for reproducibility; track `latest`/`<base>` to get
 auto-patched rebuilds (images are rebuilt at least weekly for base-OS security

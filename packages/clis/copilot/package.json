@@ -1,6 +1,6 @@
 {
   "name": "@stuffbucket/ai-cli-copilot",
-  "version": "1.0.56",
+  "version": "1.0.60",
   "description": "npx wrapper that runs the copilot CLI via the ghcr.io/stuffbucket/ai-cli-copilot container image (version-locked 1:1 with the CLI)",
   "license": "MIT",
   "repository": {

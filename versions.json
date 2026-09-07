@@ -1,5 +1,17 @@
 {
-  "claude-code": { "version": "2.1.158", "base": "alpine", "image": "ai-cli-claude" },
-  "copilot": { "version": "1.0.56", "base": "slim", "image": "ai-cli-copilot" },
-  "codex": { "version": "0.135.0", "base": "alpine", "image": "ai-cli-codex" }
+  "claude-code": {
+    "version": "2.1.263",
+    "base": "alpine",
+    "image": "ai-cli-claude"
+  },
+  "copilot": {
+    "version": "1.0.83",
+    "base": "slim",
+    "image": "ai-cli-copilot"
+  },
+  "codex": {
+    "version": "0.153.4",
+    "base": "alpine",
+    "image": "ai-cli-codex"
+  }
 }

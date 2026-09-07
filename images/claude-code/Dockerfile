@@ -6,7 +6,7 @@
 # bootstrap that installs the pinned version from the official npm registry on
 # first run, into /home/node/.local (persist it with a volume). Distributing this
 # image does not redistribute the CLI. See README "Licensing & redistribution".
-FROM node:24-alpine@sha256:2bdb65ed1dab192432bc31c95f94155ca5ad7fc1392fb7eb7526ab682fa5bf14
+FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
 
 # Pinned by versions.json; overridden per build by CI. Installed at RUN-time, not build.
 ARG CLI_VERSION=latest

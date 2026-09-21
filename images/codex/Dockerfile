@@ -3,7 +3,7 @@
 # Codex is Apache-2.0, so the CLI is baked in directly (redistribution is
 # permitted; we ship the required LICENSE + NOTICE). Its native binary runs on
 # musl, so this uses the small Alpine base.
-FROM node:24-alpine@sha256:2bdb65ed1dab192432bc31c95f94155ca5ad7fc1392fb7eb7526ab682fa5bf14
+FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1
 
 # Pinned by versions.json; overridden per build by CI.
 ARG CLI_VERSION=latest

@@ -8,7 +8,7 @@
 # with a volume). The slim/glibc base is required because Copilot's native binary
 # segfaults under Alpine/musl, and the CLI needs Node 24+. See README
 # "Licensing & redistribution".
-FROM node:24-slim@sha256:242549cd46785b480c832479a730f4f2a20865d61ea2e404fdb2a5c3d3b73ecf
+FROM node:24-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54
 
 # Pinned by versions.json; overridden per build by CI. Installed at RUN-time, not build.
 ARG CLI_VERSION=latest

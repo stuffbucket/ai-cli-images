@@ -54,10 +54,15 @@ LABEL co.stuffbucket.cli.auth.env="COPILOT_GITHUB_TOKEN,GH_TOKEN,GITHUB_TOKEN" \
 # config/login/install: own everything to gid 0 and mirror user perms to group
 # (the OpenShift "arbitrary uid" pattern). /work is kept as an alias of
 # /workspace for backward compatibility.
+#
+# Exception: ~/.copilot must stay private. Copilot (>= 1.0.112) refuses to use a
+# storage directory that is group/other-writable, so it is 0700 for `node`; an
+# arbitrary --user gets its own private COPILOT_HOME from the bootstrap instead.
 RUN mkdir -p /home/node/.local /home/node/.copilot /workspace \
   && ln -s /workspace /work \
   && chown -R node:0 /home/node /workspace \
-  && chmod -R g=u /home/node /workspace
+  && chmod -R g=u /home/node /workspace \
+  && chmod 0700 /home/node/.copilot
 USER node
 WORKDIR /workspace
 

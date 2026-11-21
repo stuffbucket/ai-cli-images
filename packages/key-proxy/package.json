@@ -1,6 +1,7 @@
 {
   "name": "@stuffbucket/ai-cli-key-proxy",
   "version": "0.1.0",
+  "private": true,
   "description": "Vercel-style credential-injection proxy: holds the vendor API key and adds it to outbound model-API requests, so the key never enters the container/agent",
   "license": "MIT",
   "repository": {

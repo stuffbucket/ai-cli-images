@@ -15,6 +15,22 @@
 #   NPM_CONFIG_PREFIX  install location (declared a VOLUME for persistence)
 set -eu
 
+# Copilot (>= 1.0.112) refuses a storage directory it doesn't own or that is
+# group/other-writable. ~/.copilot is private to the image's `node` user; when
+# running as any other uid (e.g. --user "$(id -u):$(id -g)" / OpenShift), use a
+# private per-uid COPILOT_HOME instead. An explicit COPILOT_HOME always wins, and
+# a ~/.copilot bind-mounted from the host is used as-is when this uid owns it.
+# This must run before the version probe below, which itself runs copilot.
+owned_by_me() { [ "$(stat -c %u "$1" 2>/dev/null)" = "$(id -u)" ]; }
+if [ -z "${COPILOT_HOME:-}" ] && ! owned_by_me "${HOME}/.copilot"; then
+  for dir in "${HOME}/.copilot-$(id -u)" "${TMPDIR:-/tmp}/copilot-$(id -u)"; do
+    if mkdir -p "$dir" 2>/dev/null && chmod 0700 "$dir" 2>/dev/null && owned_by_me "$dir"; then
+      export COPILOT_HOME="$dir"
+      break
+    fi
+  done
+fi
+
 prefix="${NPM_CONFIG_PREFIX:-/home/node/.local}"
 bin="${prefix}/bin/${CLI_BIN}"
 want="${CLI_VERSION:-latest}"

@@ -15,16 +15,35 @@ on:
         type: boolean
         default: true
 
-permissions:
-  packages: write
+permissions: {}
 
 jobs:
-  cleanup:
+  # Package names come from versions.json (`.image`), the same source build.yml
+  # publishes from, so a rename can't leave this job pointing at packages that no
+  # longer exist (a hard-coded list did exactly that after the ai-cli-* rename).
+  prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      packages: ${{ steps.set.outputs.packages }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: set
+        run: |
+          packages="$(jq -c '[.[].image]' versions.json)"
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
+          echo "$packages"
+
+  cleanup:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
     strategy:
       fail-fast: false
       matrix:
-        package: [claude-code, copilot, codex]
+        package: ${{ fromJSON(needs.prepare.outputs.packages) }}
     steps:
       # SHA-pinned (supply-chain): this action is given a delete-capable token,
       # so tag-hijack protection matters most here. Bump the SHA deliberately.

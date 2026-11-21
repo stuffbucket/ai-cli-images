@@ -40,6 +40,7 @@ const pkgJson = (cli, meta) => {
   return {
     name: pkgName(cli),
     version: meta.version,
+    private: true,
     description: `npx wrapper that runs the ${cli} CLI via the ghcr.io/stuffbucket/${meta.image} container image (version-locked 1:1 with the CLI)`,
     license: "MIT",
     repository: {

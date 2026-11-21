@@ -21,9 +21,8 @@ together and are released in lockstep.
 
 - `versions.json` is the single source of truth: image → `{ version, base }`.
 - `build.yml` turns it into a build matrix and pushes each image multi-arch to
-  `ghcr.io/stuffbucket/<name>`, then its `publish-npm` job publishes the npx
-  wrappers **in the same run** — so the npm version === image tag === CLI
-  version, 1:1.
+  `ghcr.io/stuffbucket/<name>`. Nothing is published to npm; the packages are
+  private.
 - `update-versions.yml` weekly: bumps CLI versions from npm, refreshes the
   digest-pinned base images, regenerates the wrappers, and opens a PR.
 - `cleanup-packages.yml`: prunes old image versions (hygiene).
@@ -33,7 +32,6 @@ together and are released in lockstep.
 - Base images pinned by **digest** (refreshed weekly for security patches).
 - Every third-party GitHub Action pinned to a **commit SHA**.
 - Images built with **SBOM + SLSA provenance** attestations.
-- npm wrappers published via **OIDC trusted publishing** — no long-lived token.
 - Strict allowlist `.dockerignore` per image context.
 
 ## Image internals

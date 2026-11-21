@@ -189,8 +189,11 @@ different owner, add `--user "$(id -u):$(id -g)"`.
 
 Each image has a matching npm wrapper whose **version is locked 1:1 to the CLI**,
 so you never deal with `docker run` flags or image tags — and the package and the
-image can never drift (the wrappers are generated from `versions.json` and
-published in the same CI run as the images).
+image can never drift (the wrappers are generated from `versions.json`).
+
+> The wrappers are **no longer published to npm**. The versions already on npmjs
+> (`ai-cli-claude@2.1.158`, `ai-cli-copilot@1.0.56`, `ai-cli-codex@0.135.0`) still
+> work but are frozen and run those older images.
 
 Packages follow `@stuffbucket/ai-cli-<cli>` (e.g. `ai-cli-codex`, `ai-cli-claude`,
 `ai-cli-copilot`).
@@ -238,13 +241,8 @@ This is an npm-workspaces monorepo:
 - `.github/workflows/build.yml` turns that into a build matrix and pushes each
   image multi-arch to `ghcr.io/stuffbucket/<name>` on every push to `main`,
   weekly (for base-image security updates), and on demand — with SBOM +
-  provenance attestations. Its `publish-npm` job then publishes the npx wrappers
-  **in the same run**, so the npm package version === the image tag === the CLI
-  version. Publishing uses npm **OIDC trusted publishing** — no `NPM_TOKEN`
-  secret. To enable it: link Trusted Publishing on npmjs for each package
-  (owner `stuffbucket` / repo `ai-cli-images` / workflow `build.yml`), then set
-  the repo variable `NPM_PUBLISH=true`. Until then the job is skipped and images
-  still publish.
+  provenance attestations. Nothing is published to npm; the packages under
+  `packages/` are private.
 - `.github/workflows/update-versions.yml` checks npm weekly and opens a PR that
   bumps the pinned CLI versions, refreshes the digest-pinned base images, and
   regenerates the wrappers.

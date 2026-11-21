@@ -5,7 +5,13 @@ description: Version-synced npm packages that run the matching image — no Dock
 
 Every image has a matching npm wrapper whose **version is locked 1:1 to the
 CLI**, so the package and the image can never drift. The wrappers are generated
-from `versions.json` and published in the same CI run as the images.
+from `versions.json`.
+
+:::caution
+The wrappers are **no longer published to npm**. The versions already on npmjs
+(`ai-cli-claude@2.1.158`, `ai-cli-copilot@1.0.56`, `ai-cli-codex@0.135.0`) still
+work but are frozen and run those older images.
+:::
 
 ```sh
 npx @stuffbucket/ai-cli-codex -- exec "run the tests"
